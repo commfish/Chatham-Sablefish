@@ -40,7 +40,7 @@
     4.0     0.00    8.00      1      1     0.0      1   # log_mean_y1
 #
 ## - fishing mortality
-   -3.5   -5.0     -2.0       2      1     0.0      1   # log_avg_F   
+   -3.5   -10.0     0.0       2      1     0.0      1   # log_avg_F   
 #
 ## - catchability
    -2.0    -20.0    0.00      2      0     0.0      0   # log_comm_q
@@ -53,13 +53,17 @@
 ##                        OTHER MISCELLANEOUS CONTROLS                        ##
 ## —————————————————————————————————————————————————————————————————————————— ##
 ## number of controls to read in.
-   9
+   13
 ## Fixed value   # Name         - Description
    0.05          # sigma_catch  - total annual catch variance
    1.2           # sigr         - recruitment variance (Sigler et al. 2002)
    1.2           # sig1         - as sigr
    0.1           # Mm           - male natural mortality (0.1 - Johnson and Quinn, 1988)      
-   0.1           # Mf           - female natural mortality (0.1 - Johnson and Quinn, 1988)   
+   0.1           # Mf           - female natural mortality (0.1 - Johnson and Quinn, 1988)  
+   2.28          #              - survey selectivity slope males
+   2.28          #              - survey selectivity slope females
+   2.36          #              - fishery selectivity slope males
+   2.61          #              - fishery selectivity slope females
    4             # ph_rec       - recruitment deviations vector phase
    3             # ph_init      - Year 1 deviations vector  phase
    4             # ph_F         - commercial fisheries deviations vector phase

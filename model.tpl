@@ -91,31 +91,31 @@ DATA_SECTION
  // |-------------------------------------------------------------------------|
  // | - theta_DM -> theta is a vector of estimated parameters.
 
-    init_int n_theta;
+    init_int    n_theta;
     init_matrix theta_DM(1,n_theta,1,7);
-    vector    theta_ival(1,n_theta);
+    vector      theta_ival(1,n_theta);
     vector      theta_lb(1,n_theta);
     vector      theta_ub(1,n_theta);
-    ivector    theta_phz(1,n_theta);
-    ivector theta_iprior(1,n_theta);
+    ivector     theta_phz(1,n_theta);
+    ivector     theta_iprior(1,n_theta);
     vector      theta_p1(1,n_theta);
     vector      theta_p2(1,n_theta);
-    !! theta_ival = column(theta_DM,1);
-    !! theta_lb  = column(theta_DM,2);
-    !! theta_ub  = column(theta_DM,3);
-    !! theta_phz = ivector(column(theta_DM,4));
+    
+    !! theta_ival   = column(theta_DM,1);
+    !! theta_lb     = column(theta_DM,2);
+    !! theta_ub     = column(theta_DM,3);
+    !! theta_phz    = ivector(column(theta_DM,4));
     !! theta_iprior = ivector(column(theta_DM,5));
-    !! theta_p1 = column(theta_DM,6);
-    !! theta_p2 = column(theta_DM,7);
+    !! theta_p1     = column(theta_DM,6);
+    !! theta_p2     = column(theta_DM,7);
 
 
 
  // |---------------------------------------------------------------------------|
-// | Miscellaneous Controls
-// |---------------------------------------------------------------------------|
-// | nMiscCont  » Number of controls to read in.
-// | dMiscCont  » Vector of miscellaneous controls,
-
+ // | Miscellaneous Controls
+ // |---------------------------------------------------------------------------|
+ // | nMiscCont  » Number of controls to read in.
+ // | dMiscCont  » Vector of miscellaneous controls,
 
    init_int nMiscCont;
    init_vector dMiscCont(1,nMiscCont);
@@ -125,7 +125,11 @@ DATA_SECTION
    number sig1
    number Mm;
    number Mf;
-   
+   number srv_slpm;
+   number srv_slpf;
+   number fsh_slpm;
+   number fsh_slpf;
+    
    int     ph_rec;
    int     ph_init;
    int     ph_F;
@@ -142,10 +146,14 @@ DATA_SECTION
           sig1        = dMiscCont(3);
           Mm          = dMiscCont(4);
           Mf          = dMiscCont(5);
-          ph_rec      = dMiscCont(6);
-          ph_init     = dMiscCont(7);
-          ph_F        = dMiscCont(8);
-          ph_spr      = dMiscCont(9);
+          srv_slpm    = dMiscCont(6);
+          srv_slpf    = dMiscCont(7);
+          fsh_slpm    = dMiscCont(8);
+          fsh_slpf    = dMiscCont(9);
+          ph_rec      = dMiscCont(10);
+          ph_init     = dMiscCont(11);
+          ph_F        = dMiscCont(12);
+          ph_spr      = dMiscCont(13);
 
 
     if(eof_ctl==42) cout << BaseFileName<<".ctl has been read correctly!"<<endl;
@@ -181,9 +189,9 @@ DATA_SECTION
   // | 3) endyr       -> data end year
   // | 4) recage      -> age at recruitment into the model
   // |
-  // | 7) spawn_fract ->spawning month (set to February [2])
-  // | 8) srv_fract   ->survey month (set to August [8])
-  // | 9) fsh_fract   ->month when fishery takes place (set to October [10])
+  // | 7) spawn_fract -> spawning month (set to February [2])
+  // | 8) srv_fract   -> survey month (set to August [8])
+  // | 9) fsh_fract   -> month when fishery takes place (set to October [10])
   // |    
                
      init_int      nages
@@ -192,7 +200,7 @@ DATA_SECTION
      init_int      recage
 
      init_number   spawn_fract
-     init_number   srv1_fract
+     init_number   srv_fract
      init_number   fshy_fract
 
      vector        yy(styr,endyr)
@@ -204,10 +212,10 @@ DATA_SECTION
   // |--------------------------------------------------------------------------|
   // | Selectivity curves from Dana Hanselman @ NOAA
   
-     init_vector	fish_sel_f(1,nages)
-     init_vector	fish_sel_m(1,nages)
-     init_vector	srv1_sel_f(1,nages)
-     init_vector	srv1_sel_m(1,nages)
+     init_vector	vfish_sel_f(1,nages)
+     init_vector	vfish_sel_m(1,nages)
+     init_vector	srv_sel_f(1,nages)
+     init_vector	srv_sel_m(1,nages)
 
   
   // |--------------------------------------------------------------------------|
@@ -217,14 +225,14 @@ DATA_SECTION
   // | 1) p_mature       -> proportion of females mature-at-age
   // | 2) wt_avg_fshy_f  -> mean weight-at-age in commercial fishery, females
   // | 3) wt_avg_fshy_m  -> mean weight-at-age in commercial fishery, males
-  // | 4) wt_avg_srv1_f  -> mean weight-at-age in longline survey, females
-  // | 5) wt_avg_srv1_m  -> mean weight-at-age in longline survey, males
+  // | 4) wt_avg_srv_f  -> mean weight-at-age in longline survey, females
+  // | 5) wt_avg_srv_m  -> mean weight-at-age in longline survey, males
 
      init_vector   p_mature(1,nages)
      init_vector   wt_avg_fshy_f(1,nages)
      init_vector   wt_avg_fshy_m(1,nages)
-     init_vector   wt_avg_srv1_f(1,nages)
-     init_vector   wt_avg_srv1_m(1,nages)
+     init_vector   wt_avg_srv_f(1,nages)
+     init_vector   wt_avg_srv_m(1,nages)
 
 
   // |--------------------------------------------------------------------------|
@@ -293,11 +301,15 @@ DATA_SECTION
   // | 2) yrs_MR        -> specific years MR estimated
   // | 3) obs_MR_abund  -> mark-recapture estimates of abundance
   // | 4) obs_MR_var    -> variance of MR estimates
+  // |
+  // | 5) obs_MR_abund  -> mark-recapture estimates of abundance
+  // | 6) obs_MR_var    -> variance of MR estimates
 
      init_int      nyrs_MR
      init_ivector  yrs_MR(1,nyrs_MR)
      init_vector   obs_MR_abund(1,nyrs_MR) 
      init_vector   obs_MR_var(1,nyrs_MR)
+     
      init_vector   obs_MR_abund_SRV(1,nyrs_MR)
      init_vector   obs_MR_var_SRV(1,nyrs_MR) 
 
@@ -308,9 +320,9 @@ DATA_SECTION
   // | 
   // | 1) nyrs_fish_age       -> number of years of fishery age comps
   // | 2) yrs_fish_age        -> specific years age comps
-  // | 3) nsamples_fish_agef  -> some measure of relative sample size FEMALES
+  // | 3) nsamples_fish_agef  -> sample size FEMALES
   // | 4) oac_fishf           -> female age comp data
-  // | 5) nsamples_fish_agem  -> some measure of relative sample size MALES
+  // | 5) nsamples_fish_agem  -> sample size MALES
   // | 6) oac_fishm           -> male age comp data
   // |
   // | Relative sample size = square root of number of fish aged to scale data impact
@@ -327,21 +339,21 @@ DATA_SECTION
   // | LONGLINE SURVEY AGE COMPOSITION                                          
   // |--------------------------------------------------------------------------|
   // | 
-  // | 1) nyrs_srv1_age       -> number of years of survey age comps
-  // | 2) yrs_srv1_age        -> specific years age comps
-  // | 3) nsamples_srv1_agef  -> some measure of relative sample size FEMALES
-  // | 4) oac_srv1f           -> female age comp data
-  // | 5) nsamples_srv1_agem  -> some measure of relative sample size MALES
-  // | 6) oac_srv1m           -> male age comp data
+  // | 1) nyrs_srv_age       -> number of years of survey age comps
+  // | 2) yrs_srv_age        -> specific years age comps
+  // | 3) nsamples_srv_agef  -> sample size FEMALES
+  // | 4) oac_srvf           -> female age comp data
+  // | 5) nsamples_srv_agem  -> sample size MALES
+  // | 6) oac_srvm           -> male age comp data
   // |
   // | Relative sample size = square root of number of fish aged to scale data impact
 
-     init_int      nyrs_srv1_age 	
-     init_ivector  yrs_srv1_age(1,nyrs_srv1_age)   
-     init_vector   nsamples_srv1_agef(1,nyrs_srv1_age) 
-     init_matrix   oac_srv1f(1,nyrs_srv1_age,1,nages)  
-     init_vector   nsamples_srv1_agem(1,nyrs_srv1_age) 
-     init_matrix   oac_srv1m(1,nyrs_srv1_age,1,nages)  
+     init_int      nyrs_srv_age 	
+     init_ivector  yrs_srv_age(1,nyrs_srv_age)   
+     init_vector   nsamples_srv_agef(1,nyrs_srv_age) 
+     init_matrix   oac_srvf(1,nyrs_srv_age,1,nages)  
+     init_vector   nsamples_srv_agem(1,nyrs_srv_age) 
+     init_matrix   oac_srvm(1,nyrs_srv_age,1,nages)  
   
   // |--------------------------------------------------------------------------|
   // | AGEING ERROR MATRIX                                                      
@@ -389,8 +401,8 @@ DATA_SECTION
      aa.fill_seqadd(recage,1);                  //Age vector
   
      spawn_fract = (spawn_fract - 1) / 12;	// Fraction of year at which spawning occurs
-     srv1_fract = (srv1_fract - 1) / 12;	// Fraction of year at which survey occurs
-     fshy_fract = (fshy_fract - 1) / 12;	// Fraction of year at which fishery occurs
+     srv_fract   = (srv_fract - 1)   / 12;      // Fraction of year at which survey occurs
+     fshy_fract  = (fshy_fract - 1) / 12;	// Fraction of year at which fishery occurs
 
 
     offset.initialize();
@@ -404,12 +416,12 @@ DATA_SECTION
         offset(2) -= nsamples_fish_agef(i)*((oac_fishf(i) + 0.00001)*log(oac_fishf(i) + 0.00001));
       }
 
-     for (i=1; i<=nyrs_srv1_age; i++)
+     for (i=1; i<=nyrs_srv_age; i++)
        {
-         oac_srv1m(i)/=sum(oac_srv1m(i));
-         oac_srv1f(i)/=sum(oac_srv1f(i));
-         offset(3) -= nsamples_srv1_agem(i)*((oac_srv1m(i) + 0.00001)*log(oac_srv1m(i) + 0.00001));
-         offset(4) -= nsamples_srv1_agef(i)*((oac_srv1f(i) + 0.00001)*log(oac_srv1f(i) + 0.00001));
+         oac_srvm(i)/=sum(oac_srvm(i));
+         oac_srvf(i)/=sum(oac_srvf(i));
+         offset(3) -= nsamples_srv_agem(i)*((oac_srvm(i) + 0.00001)*log(oac_srvm(i) + 0.00001));
+         offset(4) -= nsamples_srv_agef(i)*((oac_srvf(i) + 0.00001)*log(oac_srvf(i) + 0.00001));
        }
 
  END_CALCS
@@ -445,37 +457,43 @@ PARAMETER_SECTION
      number surv_q2;
 
 
-
   // |---------------------------------------------------------------------------------|
   // | RECRUITMENT AND MORTALITY PARAMETERS
   // |---------------------------------------------------------------------------------|
-  // | 
   // | - log_mean_rec  <- mean recruitment
   // | - log_rec_dev   <- recruitment deviation vector   
 
      init_bounded_vector   init_pop(1,nages-1,-5,5,ph_init);
      init_bounded_vector   log_rec_dev(styr,endyr,-5,5,ph_rec);
 
-     //vector        l_var_cpue1(1,nyrs_cpue1)
-     //vector        l_var_cpue2(1,nyrs_cpue2)
-     //vector        l_var_fshy(1,nyrs_fshy_cpue)
-     vector        l_var(1,nyrs_MR)
-     vector        l_var_SRV(1,nyrs_MR)
-
 
   // |---------------------------------------------------------------------------------|
   // | FISHING MORTALITY PARAMETERS
   // |---------------------------------------------------------------------------------|
-  // | 
   // | - log_F_devsf        <- annual fishing mortality deviations females
   // | - log_F_devsm        <- annual fishing mortality deviations males
-  
-     init_bounded_vector  log_F_devsf(styr,endyr,-5.,5.,ph_F);
-     init_bounded_vector  log_F_devsm(styr,endyr,-5.,5.,ph_F);
+  // |
+  // | - Fmortf             <- Ff * selectivity
+  // | - Fmortm             <- Fm * selectivity
+  // |
+  // | - fish_sel_a50_f     <- age of 50% selectivity, fishery females
+  // | - fish_sel_a50_m     <- age of 50% selectivity, fishery males
+  // |
+  // | - vector for fishery selectivity females
+  // | - vector for fishery selectivity males
+
+     init_bounded_vector  log_F_devsf(styr,endyr,-10.,10.,ph_F);
+     init_bounded_vector  log_F_devsm(styr,endyr,-10.,10.,ph_F);
     
      vector               Fmortf(styr,endyr);
      vector               Fmortm(styr,endyr);
 
+     init_bounded_number fish_sel_a50_f(1,3,ph_init);
+     init_bounded_number fish_sel_a50_m(1,3,ph_init);
+
+     vector	fish_sel_f(1,nages)
+     vector	fish_sel_m(1,nages)
+     
 
   // |---------------------------------------------------------------------------------|
   // | POPULATION VECTORS
@@ -484,26 +502,29 @@ PARAMETER_SECTION
   // | - tot_nf         -> total abundance females
   // | - tot_nm         -> total abundance males
   // | - tot_biomass    -> total biomass
+  // | - spawn_biomass  -> spawning biomass
+  // | - recruitment    -> recruitment
+  // |
   // | - pred_catch     -> total annual catch
   // | - pred_catchf    -> total annual catch females
   // | - pred_catchm    -> total annual catch males
-  // |
-  // | - natage_proj    -> numbers at age for projected year
-  // | - natage_projf   -> numbers at age for projected year females
-  // | - natage_projm   -> numbers at age for projected year males
 	
      sdreport_vector  tot_n(styr,endyr)
      sdreport_vector  tot_nf(styr,endyr)
      sdreport_vector  tot_nm(styr,endyr)
      sdreport_vector  tot_biomass(styr,endyr)
+     sdreport_vector  spawn_biom(styr,endyr);
+     sdreport_vector  recruitment(styr,endyr);
+     
      vector           pred_catch(styr,endyr)		
      vector           pred_catchf(styr,endyr)
      vector           pred_catchm(styr,endyr)
 
-     sdreport_vector  natage_proj(1,nages);
-     sdreport_vector  natage_projf(1,nages);
-     sdreport_vector  natage_projm(1,nages);
-
+     vector           wt_mature_s(1,nages);
+     vector           wt_mature_f(1,nages);
+     vector           wt_fsh_sel_m(1,nages);
+     vector           wt_fsh_sel_f(1,nages);
+  
 
   // |---------------------------------------------------------------------------------|
   // | POPULATION MATRICES
@@ -524,8 +545,8 @@ PARAMETER_SECTION
   // | 
   // | - eac_fishf      -> proportion-at-age fishery females
   // | - eac_fishm      -> proportion-at-age fishery males
-  // | - eac_srv1f      -> proportion-at-age survey females
-  // | - eac_srv1m      -> proportion-at-age survey males
+  // | - eac_srvf      -> proportion-at-age survey females
+  // | - eac_srvm      -> proportion-at-age survey males
 
      matrix  natage(styr,endyr,1,nages);
      matrix  natagef(styr,endyr,1,nages);
@@ -539,14 +560,13 @@ PARAMETER_SECTION
      matrix  Ff(styr,endyr,1,nages); 
      matrix  Sf(styr,endyr,1,nages); 
      matrix  Zm(styr,endyr,1,nages);
-     
      matrix  Fm(styr,endyr,1,nages); 
      matrix  Sm(styr,endyr,1,nages); 
 
      matrix  eac_fishf(1,nyrs_fish_age,1,nages); 
      matrix  eac_fishm(1,nyrs_fish_age,1,nages);
-     matrix  eac_srv1f(1,nyrs_srv1_age,1,nages); 
-     matrix  eac_srv1m(1,nyrs_srv1_age,1,nages);
+     matrix  eac_srvf(1,nyrs_srv_age,1,nages); 
+     matrix  eac_srvm(1,nyrs_srv_age,1,nages);
 
 
   // |---------------------------------------------------------------------------------|
@@ -562,15 +582,31 @@ PARAMETER_SECTION
      vector sdnr_fish_agef(1,nyrs_fish_age)
      vector sdnr_fish_agem(1,nyrs_fish_age)
 
+     vector effn_srv_agef(1,nyrs_srv_age)
+     vector effn_srv_agem(1,nyrs_srv_age)
+     vector sdnr_srv_agef(1,nyrs_srv_age)
+     vector sdnr_srv_agem(1,nyrs_srv_age)
+     
+
   // |---------------------------------------------------------------------------------|
   // | MARK-RECAPTURE AND CPUE
   // |---------------------------------------------------------------------------------|
-  // | - pred_cpue1      -> Survey CPUE (both sexes) 1988 - 1996
-  // | - pred_cpue2      -> Survey CPUE (both sexes) 1997 - present
+  // | - pred_cpue1          -> Survey CPUE (both sexes) 1988 - 1996
+  // | - pred_cpue2          -> Survey CPUE (both sexes) 1997 - present
   // |
-  // | - pred_fshy_pue   -> Fishery CPUE (both sexes)
+  // | - pred_fshy_pue       -> Fishery CPUE (both sexes)
   // |
-  // | - pred_MR_abund   -> MR abundance
+  // | - pred_MR_abund       -> MR abundance fishery
+  // | - pred_MR_abund_SRV   -> MR abundance survey
+  // |
+  // | - s_srv               -> fraction surviving to time of survey
+  // | - s_fshy              -> surviving to time of fishery
+  // | - s_mr                -> fraction surviving to time of mark-recapture
+  // | - s_spn               -> fraction surviving to spawning
+  // |
+  // | - q_cpue1             -> q for survey 1 catchability 
+  // | - q_cpue2             -> q for survey 2 catchability 
+  // | - q_fshy              -> q for fishery catchability both sexes
 
      vector  pred_cpue1(1,nyrs_cpue1); 
      vector  pred_cpue2(1,nyrs_cpue2);
@@ -580,132 +616,98 @@ PARAMETER_SECTION
      sdreport_vector  pred_MR_abund(1,nyrs_MR);
      sdreport_vector  pred_MR_abund_SRV(1,nyrs_MR);
 
-     //matrix  mr_f(1,nyrs_MR,1,nages-2);
-     //matrix  mr_m(1,nyrs_MR,1,nages-2);
+     number  s_srvf; 
+     number  s_fshyf;
+     number  s_srvm;  
+     number  s_fshym; 
 
-     matrix  mr_f_cpue(1,nyrs_fshy_cpue,1,nages-2);
-     matrix  mr_m_cpue(1,nyrs_fshy_cpue,1,nages-2);
-
-     vector  mr_f_proj(1,nages-2);
-     vector  mr_m_proj(1,nages-2);
-     vector  wt_f_proj(1,nages-2);
-     vector  wt_m_proj(1,nages-2);
-
-
-     number  s_srv1f;   // fraction females surviving from beginning of year to time of survey
-     number  s_fshyf;   // fraction females surviving from beginning of year to time of fishery
-     number  s_srv1m;   // fraction males surviving from beginning of year to time of survey
-     number  s_fshym;   // fraction males surviving from beginning of year to time of fishery
-
-  
-  // |---------------------------------------------------------------------------------|
-  // | SDREPORT QUANTITIES - legacy code: revisit these and clean up 2015
-  // |---------------------------------------------------------------------------------|
-  // |  - Age4_biom          <- total Age 4+ biomass
-  // |  - expl_biom          <- exploitable biomass
-  // |  - q_cpue1            <- q for survey 1 catchability 
-  // |  - q_cpue2            <- q for survey 2 catchability 
-  // |  - q_fshy            <- q for fishery catchability both sexes
-  // |  - pred_rec           <- predicted recruitments
-  // |  - avg_rec            <- mean recruitment 
-  // |  - spbiom_trend       <- trend in biomass over last 2 years (B(t)/B(t-1); t=endyr)
-  // |  - expl_biom_proj     <- next year's projected exploitable biomass 
-  // |  - Age4_biom_proj     <- next year's projected Age 4+ biomass 
-  // |  - spawn_biom_proj    <- next year's projected spawning biomass
-  // |  - spawn_biom	   <- spawning biomass vector
-  // |  - F50		   <- F50
-  // |  - F40		   <- F40
-  // |  - F35		   <- F35
-
-     sdreport_vector  Age4_biom(styr,endyr);
-     sdreport_vector  expl_biom(styr,endyr);
      sdreport_number  q_cpue1;
      sdreport_number  q_cpue2;
      sdreport_number  q_fshy;
-     sdreport_vector  recruitment(styr,endyr);
-     sdreport_number  avg_rec;
-   //sdreport_number  spbiom_trend;
-     vector           expl_abund_proj_comp(1,nages-2);
-     sdreport_number  expl_abund_proj; 
-     sdreport_number  Age4_biom_proj;
-     vector           expl_biom_proj_comp(1,nages);
-     sdreport_number  expl_biom_proj; 
-     matrix        spawn_biom(styr,endyr,1,nages);
-     sdreport_number  F50;
-     sdreport_number  F40;
-     sdreport_number  F35;
 
 
-  // |---------------------------------------------------------------------------------|
-  // | SPR / ABC
-  // |---------------------------------------------------------------------------------|
-  // |  - mF50            <- F50
-  // |  - mF40            <- F40
-  // |  - mF35            <- F35
-  // |  - SB0             <- Spawning biomass per recruit at F = 0
-  // |  - SBF50           <- Spawning biomass per recruit at F = 50
-  // |  - SBF40           <- Spawning biomass per recruit at F = 40
-  // |  - SBF35           <- Spawning biomass per recruit at F = 35
-  // |  - SSB_0           <- total spawning biomass at F = 0
-  // |  - SSB_40          <- total spawning biomass at F = 40
+  // |--------------------------------------------------------------------------|
+  // | SPR / ABC / PROJECTIONS                               
+  // |--------------------------------------------------------------------------|
+  // | mF                -> vector of potential F levels
+  // | SBx               -> spawning biomass from mF            
+  // | Bx                -> biomass from mF
   // |
-  // |  - Nspr            <- # spawners per recruit @ varying F
-  // |  - wt_mature_s     <- weight of mature fish survey
-  // |  - wt_mature_f     <- weight of mature fish fishery
-  // |  - wt_fsh_sel_m	<- 
-  // |  - wt_fsh_sel_f    <- 
+  // | Nspr              -> Number of projected spawners
+  // | N0                -> Number projected with F = 0
   // |
-  // |  - Fself		<- Full recruitment fishing mortality at F40 females
-  // |  - Fselm		<- Full recruitment fishing mortality at F40 males
-  // |  - ABC             <- Estimate of projected ABC
-  // |  - Z1              <- total mortality at F = 40 females
-  // |  - Z2              <- total mortality at F = 40 males
-  // |  - S1              <- survival at F = 40 females
-  // |  - S2              <- survival at F = 40 males
-           //number mF50;
-           //number mF40;
-           //number mF35;
-           //number              SB0;
-           //number              SBF50;
-           //number              SBF40;
-           //number              SBF35;
-           //number              SSB_0;
-           //number              SSB_40;
-     number    B40;
-         
-           //matrix              Nspr(1,4,1,nages);	
-     vector              wt_mature_s(1,nages);
-     vector              wt_mature_f(1,nages);
-     vector              wt_fsh_sel_m(1,nages);
-     vector              wt_fsh_sel_f(1,nages);
-  
-     vector              Fself(1,nages-2);
-     vector              Fselm(1,nages-2);
-     vector              ABC_comp(1,nages);
-     sdreport_number     ABC;
-     vector              ABC_all(styr,endyr);
-     vector              Z1(1,nages-2);	
-     vector              S1(1,nages-2);		
-     vector              Z2(1,nages-2);	
-     vector              S2(1,nages-2);
-
-  // |-------------------------------------------------------------------------|
-  // | PROJECTED POPULATIONS, SPR AND F LEVELS                                 |
-  // |-------------------------------------------------------------------------|
-  // | mF                 -> vector of potential F levels
-  // | SBx                -> spawning biomass from mF            
-  // | Bx                 -> biomass from mF
+  // | N_ABC_f           -> Number of projected females at F_ABC
+  // | N_ABC_m           -> Number of projected males at F_ABC
+  // | N_OFL_f           -> Number of projected females at F_OFL
+  // | N_OFL_m           -> Number of projected males at F_OFL
   // |
-  // | Nspr               -> Number of projected spawners
-  // | N0                 -> Number projected with F = 0
+  // | FABC_f            -> F * sel of projected females at F_ABC
+  // | FABC_m            -> F * sel of projected males at F_ABC
+  // | FOFL_f            -> F * sel of projected females at F_OFL
+  // | FOFL_m            -> F * sel of projected males at F_OFL
+  // | 
+  // | ZABC_f            -> Total mortality of projected females at F_ABC
+  // | ZABC_m            -> Total mortality of projected males at F_ABC
+  // | ZOFL_f            -> Total mortality of projected females at F_OFL
+  // | ZOFL_m            -> Total mortality of projected males at F_OFL
+  // |
+  // | catage_ABC_f      -> Projected catch at age for females at F_ABC
+  // | catage_ABC_m      -> Projected catch at age for males at F_ABC
+  // | catage_OFL_f      -> Projected catch at age for females at F_OFL
+  // | catage_OFL_m      -> Projected catch at age for males at F_OFL
+  // |
+  // | catch_ABC_f      -> Projected annual catch for females at F_ABC
+  // | catch_ABC_m      -> Projected annual catch for males at F_ABC
+  // | catch_OFL_f      -> Projected annual catch for females at F_OFL
+  // | catch_OFL_m      -> Projected annual catch for males at F_OFL
+  // |
 
-     init_bounded_vector mF(1,7,0.01,1)
-     vector SBx(1,8)
-     vector Bx(1,8)
+     init_bounded_vector mF(1,9,0.01,1,ph_spr)
+     vector SBx(1,10)
+     vector Bx(1,10)
 					       
-     matrix Nspr(1,8,1,nages)			
-     matrix N0(1,8,1,nages)
+     matrix Nspr(1,10,1,nages)			
+     matrix N0(1,10,1,nages)
 
+     matrix N_ABC_f(endyr+1,endyr+15,1,nages);
+     matrix N_ABC_m(endyr+1,endyr+15,1,nages);
+     matrix N_OFL_f(endyr+1,endyr+15,1,nages);
+     matrix N_OFL_m(endyr+1,endyr+15,1,nages);
+
+     vector FABC_f(1,nages);
+     vector FABC_m(1,nages);
+     vector FOFL_f(1,nages);
+     vector FOFL_m(1,nages)
+     
+     vector ZABC_f(1,nages);
+     vector ZABC_m(1,nages);
+     vector ZOFL_f(1,nages);
+     vector ZOFL_m(1,nages);
+     
+     matrix catage_ABC_f(endyr+1,endyr+15,1,nages);
+     matrix catage_ABC_m(endyr+1,endyr+15,1,nages);
+     matrix catage_OFL_f(endyr+1,endyr+15,1,nages);
+     matrix catage_OFL_m(endyr+1,endyr+15,1,nages);
+
+     vector catch_ABC_f(endyr+1,endyr+15);
+     vector catch_ABC_m(endyr+1,endyr+15);
+     vector catch_OFL_f(endyr+1,endyr+15);
+     vector catch_OFL_m(endyr+1,endyr+15);
+
+     matrix spawn_biom_ABC(endyr+1,endyr+15,1,nages);
+     matrix spawn_biom_OFL(endyr+1,endyr+15,1,nages);
+
+     sdreport_number B40;
+     sdreport_number ABC;
+     sdreport_number OFL;
+     number ABC_pounds;
+     number OFL_pounds;
+     number F50;
+     number F45;
+     number F40;
+     number F55;
+
+     number stdev_rec;
 
   // |---------------------------------------------------------------------------------|
   // | LIKELIHOODS
@@ -722,7 +724,7 @@ PARAMETER_SECTION
   // | - obj_fun            <- ADMB objective function call
 
      number  sprpen;
-     vector  penalties(1,4);
+     vector  penalties(1,5);
      vector  surv_like(1,5);
      vector  age_like(1,4);
      number  rec_like;
@@ -736,8 +738,7 @@ PARAMETER_SECTION
  LOCAL_CALCS
 
    wt_mature_f = elem_prod(p_mature,wt_avg_fshy_f);
-   wt_mature_s = elem_prod(p_mature,wt_avg_srv1_f);
-
+   wt_mature_s = elem_prod(p_mature,wt_avg_srv_f);
    wt_fsh_sel_f = elem_prod(fish_sel_f,wt_avg_fshy_f);
    wt_fsh_sel_m = elem_prod(fish_sel_m,wt_avg_fshy_m);
 
@@ -750,9 +751,9 @@ PARAMETER_SECTION
   // | between males and females. If both are input at 0.1, then one decrement
   // | for the fishery and another for the survey is all that is required
 
-     s_srv1f  = mfexp(-1*srv1_fract*Mf);
+     s_srvf  = mfexp(-1*srv_fract*Mf);
      s_fshyf  = mfexp(-1*fshy_fract*Mf);
-     s_srv1m  = mfexp(-1*srv1_fract*Mm);
+     s_srvm  = mfexp(-1*srv_fract*Mm);
      s_fshym  = mfexp(-1*fshy_fract*Mm);
 
  END_CALCS
@@ -760,7 +761,7 @@ PARAMETER_SECTION
 
 PROCEDURE_SECTION
      initializeModelParameters();
-
+     Selectivity();
      Mortality();
             if(DEBUG_FLAG == 1) cout<<"**Mortality**"<<endl;
      Abundance();	
@@ -769,6 +770,8 @@ PROCEDURE_SECTION
             if(DEBUG_FLAG == 1) cout<<"**Catch**"<<endl;
      Predicted();
             if(DEBUG_FLAG == 1) cout<<"**Predicted**"<<endl;
+     Population();
+            if(DEBUG_FLAG == 1) cout<<"**Population**"<<endl;
 		
      if (last_phase())
        {
@@ -777,9 +780,6 @@ PROCEDURE_SECTION
                 
          Projection();
             if(DEBUG_FLAG == 1) cout<<"**Projection**"<<endl;
-
-         Get_ABC();
-            if(DEBUG_FLAG == 1) cout<<"**ABC**"<<endl;
        }
 
      Objective_Function();
@@ -789,16 +789,22 @@ PROCEDURE_SECTION
        {
          writePosteriorSamples();
 
-         evalout<<tot_n<<" "<<
-              tot_nf<<" "<<
-              tot_nm<<" "<<
-              pred_MR_abund<<""<<
-              pred_MR_abund_SRV<<""<<
-              tot_biomass<<" "<<
-              recruitment<<" "<<
-              expl_abund_proj<<" "<<
-              expl_biom_proj<<" "<<
-              endl;
+         // |----------------------------------------------
+         // | This can either be done here with the
+         // | 'evalout' file or below with the calls inside
+         // | the "writePosteriorSamples' function.
+         // | I prefer using the separate function because
+         // | the files are distinct and there is no need
+         // | to parse anything in R afterwards
+         
+         //evalout<<tot_n<<" "<<
+         //     pred_MR_abund<<""<<
+         //     pred_MR_abund_SRV<<""<<
+         //     spawn_biom<<" "<<
+         //     recruitment<<" "<<
+         //     tot_nf<<" "<<
+         //     tot_nm<<" "<<
+         //     endl;
        }
 
 FUNCTION void writePosteriorSamples()
@@ -806,8 +812,27 @@ FUNCTION void writePosteriorSamples()
 	- This function is only envoked when the -mceval
 		command line option is implemented.
 	*/
-	//ofstream ofs0("bmT.ps",ios::app);
-	//ofs0<<tot_biomassT<<endl;
+	ofstream ofs0("spbm.ps",ios::app);
+	ofs0<<spawn_biom<<endl;
+
+	ofstream ofs1("MR.ps",ios::app);
+	ofs1<<pred_MR_abund<<endl;
+
+	ofstream ofs2("MR_srv.ps",ios::app);
+	ofs2<<pred_MR_abund_SRV<<endl;
+
+	ofstream ofs3("recruit.ps",ios::app);
+	ofs3<<recruitment<<endl;
+
+	ofstream ofs4("tot_n.ps",ios::app);
+	ofs4<<tot_n<<endl;
+
+	ofstream ofs5("tot_nf.ps",ios::app);
+	ofs5<<tot_nf<<endl;
+
+	ofstream ofs6("tot_nm.ps",ios::app);
+	ofs6<<tot_nm<<endl;
+        
 
 FUNCTION void initializeModelParameters()
 	//fpen = 0;
@@ -818,6 +843,39 @@ FUNCTION void initializeModelParameters()
         log_comm_q            = theta(4);
         log_surv_q1           = theta(5);
         log_surv_q2           = theta(6);
+        
+
+FUNCTION Selectivity
+
+  // |-----------------------------------------------------------------------|
+  // | FISHERY SELECTIVITIES - keep for future versions
+  // |-----------------------------------------------------------------------|
+  // | It is assumed that selectivities for the commercial longline fishery
+  // | and the ADF&G longline survey are different. The gear is identical
+  // | but behavior differs.
+  // |
+
+// |-----------------------------------------------------|
+    // | Survey
+    // |-----------------------------------------------------|
+    
+    //for (j=1;j<=nages;j++)
+      //{
+        //srv_sel_m(j) = 1/(1+mfexp(-mfexp(srv_slpm)*(j-mfexp(srv_sel_a50_m))));
+        //srv_sel_f(j) = 1/(1+mfexp(-mfexp(srv_slpf)*(j-mfexp(srv_sel_a50_f))));        
+      //}
+
+
+   //  |-----------------------------------------------------|
+   //  | Fishery
+   //  |-----------------------------------------------------|
+
+    for (j=1;j<=nages;j++)
+      { 
+        fish_sel_f(j) =  1/(1+mfexp(-mfexp(fsh_slpf)*(j-mfexp(fish_sel_a50_f))));
+        fish_sel_m(j) =  1/(1+mfexp(-mfexp(fsh_slpm)*(j-mfexp(fish_sel_a50_m))));
+      }
+
 
 
 FUNCTION Mortality
@@ -871,9 +929,7 @@ FUNCTION Abundance
   natagef.initialize();
   natagem.initialize();
   natage.initialize();
-  tot_nm.initialize();
-  tot_nf.initialize();
-  tot_n.initialize();
+
 
   // |-------------------------------------------------------------------------|
   // | YEAR 1
@@ -919,22 +975,6 @@ FUNCTION Abundance
        natagef(i,nages)    += natagef(i,nages)*Sf(i,nages);
        natagem(i,nages)    += natagem(i,nages)*Sm(i,nages);   
        }
-
-
-    // |-----------------------------------------------------------------------|
-    // | Summations
-    // |-----------------------------------------------------------------------|
-
-       for(i=styr; i<=endyr; i++)
-         {
-           for(j=1; j<=nages; j++)
-             {
-               natage(i,j) = natagef(i,j)+natagem(i,j);
-               tot_nm(i)   = sum(natagem(i));
-               tot_nf(i)   = sum(natagef(i));
-               tot_n(i)    = sum(natage(i));
-             }
-         }
 
        
 FUNCTION Catch
@@ -998,24 +1038,25 @@ FUNCTION Predicted
   // | model begins with age 2, thus the '-2'. This is not necessary with the
   // | longline survey, as the youngest there is age 2. 
 
-     dvar_matrix mr_f(1,nyrs_MR,1,nages-2);
-     dvar_matrix mr_m(1,nyrs_MR,1,nages-2);
+     dvar_matrix mr_f(1,nyrs_MR,1,nages);
+     dvar_matrix mr_m(1,nyrs_MR,1,nages);
      dvar_matrix mr_f_SRV(1,nyrs_MR,1,nages);
      dvar_matrix mr_m_SRV(1,nyrs_MR,1,nages);
+
   
      for (i=1;i<=nyrs_MR;i++)
        {
-         for(j=3; j<=nages; j++)
+         for(j=1; j<=nages; j++)
            {
-             mr_f(i,j-2) = natagef(yrs_MR(i),j)*fish_sel_f(j);
-             mr_m(i,j-2) = natagem(yrs_MR(i),j)*fish_sel_m(j);
+             mr_f(i,j) = natagef(yrs_MR(i),j)*fish_sel_f(j);
+             mr_m(i,j) = natagem(yrs_MR(i),j)*fish_sel_m(j);
            }
        }
 
      for (i=1;i<=nyrs_MR;i++)
        {
-             mr_f_SRV(i) = elem_prod(natagef(yrs_MR(i)),srv1_sel_f);
-             mr_m_SRV(i) = elem_prod(natagem(yrs_MR(i)),srv1_sel_m);
+             mr_f_SRV(i) = elem_prod(natagef(yrs_MR(i)),srv_sel_f);
+             mr_m_SRV(i) = elem_prod(natagem(yrs_MR(i)),srv_sel_m);
        }
 
 
@@ -1024,14 +1065,11 @@ FUNCTION Predicted
          pred_MR_abund(i) =   s_fshyf * 1000 * sum(mr_f(i))+
                               s_fshym * 1000 * sum(mr_m(i));
 
-         pred_MR_abund_SRV(i) =   s_srv1f * 1000 * sum(mr_f_SRV(i))+
-                                  s_srv1m * 1000 * sum(mr_m_SRV(i));
-
-
-        //1000* sum ((s_srv1f *elem_prod(natagef(yrs_MR(i)),srv1_sel_f))+
-        //(s_srv1m * elem_prod(natagem(yrs_MR(i)),srv1_sel_m))) =   obs_MR_abund_SRV(i);
+         pred_MR_abund_SRV(i) =   s_srvf * 1000 * sum(mr_f_SRV(i))+
+                                  s_srvm * 1000 * sum(mr_m_SRV(i));
                               
        } 
+
                               
       
   // |-------------------------------------------------------------------------|
@@ -1042,11 +1080,11 @@ FUNCTION Predicted
   // | with no effect on relative abundance
 
      for (i=1;i<=nyrs_cpue1;i++)
-       {
-         pred_cpue1(i) = surv_q1 * sum(elem_prod(natagef(yrs_cpue1(i)),
-                                       wt_avg_srv1_f)+  
-                                       elem_prod(natagem(yrs_cpue1(i)),
-                                       wt_avg_srv1_m));  
+       {                        
+         pred_cpue1(i) = surv_q1 * (sum(elem_prod(natagef(yrs_cpue1(i)),
+                                       srv_sel_f)) +  
+                                    sum(elem_prod(natagem(yrs_cpue1(i)),
+                                       srv_sel_m)));  
        }
 
 
@@ -1059,10 +1097,10 @@ FUNCTION Predicted
 					             
      for (i=1;i<=nyrs_cpue2;i++)
        {
-         pred_cpue2(i) = surv_q2 * sum(elem_prod(natagef(yrs_cpue2(i)),
-                                       wt_avg_srv1_f)+  
-                                       elem_prod(natagem(yrs_cpue2(i)),
-                                       wt_avg_srv1_m));  
+         pred_cpue2(i) = surv_q2 * (sum(elem_prod(natagef(yrs_cpue2(i)),
+                                       srv_sel_f))+  
+                                   sum(elem_prod(natagem(yrs_cpue2(i)),
+                                       srv_sel_m)));  
        }
 
 
@@ -1077,9 +1115,9 @@ FUNCTION Predicted
      for (i=1;i<=nyrs_fshy_cpue;i++)
        {
 
-         pred_fshy_cpue(i) =  comm_q * sum(elem_prod(natagef(yrs_fshy_cpue(i)),wt_fsh_sel_f)
-                                           + 
-                                           elem_prod(natagem(yrs_fshy_cpue(i)),wt_fsh_sel_m));
+         pred_fshy_cpue(i) =  comm_q * (sum(elem_prod(natagef(yrs_fshy_cpue(i)),wt_fsh_sel_f))
+                                           +
+                                        sum(elem_prod(natagem(yrs_fshy_cpue(i)),wt_fsh_sel_m)));
        }
 
 
@@ -1095,26 +1133,42 @@ FUNCTION Predicted
          eac_fishf(i)  = catagef(yrs_fish_age(i)) / sum(catagef(yrs_fish_age(i))) * ageage;  
 
          effn_fish_agem(i) = (1-eac_fishm(i))*eac_fishm(i)/norm2(oac_fishm(i)-eac_fishm(i)); 
-         effn_fish_agef(i) = (1-eac_fishf(i))*eac_fishf(i)/norm2(oac_fishf(i)-eac_fishf(i)); 
+         effn_fish_agef(i) = (1-eac_fishf(i))*eac_fishf(i)/norm2(oac_fishf(i)-eac_fishf(i));
+
+         sdnr_fish_agef(i) = sdnr(eac_fishf(i),oac_fishf(i),
+                            double(nsamples_fish_agef(i)));
+                            
+         sdnr_fish_agem(i) = sdnr(eac_fishm(i),oac_fishm(i),
+                            double(nsamples_fish_agem(i)));
        }
 
 
      // SURVEY
-     for (i=1;i<=nyrs_srv1_age;i++)
+     for (i=1;i<=nyrs_srv_age;i++)
        {
-         eac_srv1f(i)  = elem_prod(srv1_sel_f, natagef(yrs_srv1_age(i))*s_srv1f)
-                         /sum(elem_prod(natagef(yrs_srv1_age(i))*s_srv1f,srv1_sel_f)) * ageage; 
+         eac_srvf(i)  = elem_prod(srv_sel_f, natagef(yrs_srv_age(i))*s_srvf)
+                         /sum(elem_prod(natagef(yrs_srv_age(i))*s_srvf,srv_sel_f)) * ageage; 
 
-         eac_srv1m(i)  = elem_prod(srv1_sel_m, natagem(yrs_srv1_age(i))*s_srv1f)
-                         /sum(elem_prod(natagem(yrs_srv1_age(i))*s_srv1m,srv1_sel_m)) * ageage;
+         eac_srvm(i)  = elem_prod(srv_sel_m, natagem(yrs_srv_age(i))*s_srvm)
+                         /sum(elem_prod(natagem(yrs_srv_age(i))*s_srvm,srv_sel_m)) * ageage;
+
+         effn_srv_agem(i) = (1-eac_srvm(i))*eac_srvm(i)/norm2(oac_srvm(i)-eac_srvm(i)); 
+         effn_srv_agef(i) = (1-eac_srvf(i))*eac_srvf(i)/norm2(oac_srvf(i)-eac_srvf(i));
+
+         sdnr_srv_agef(i) = sdnr(eac_srvf(i),oac_srvf(i),
+                            double(nsamples_srv_agef(i)));
+                            
+         sdnr_srv_agem(i) = sdnr(eac_srvm(i),oac_srvm(i),
+                            double(nsamples_srv_agem(i)));
        }
 
 FUNCTION Population
    recruitment.initialize();
    tot_biomass.initialize();
-   Age4_biom.initialize();
-   expl_biom.initialize();
    spawn_biom.initialize();
+   tot_nm.initialize();
+   tot_nf.initialize();
+   tot_n.initialize();
 
   // |-------------------------------------------------------------------------|
   // | MAKE SURE UNITS ARE CORRECT
@@ -1124,32 +1178,32 @@ FUNCTION Population
   // |
   // |  - kg (wt-at-age)  x thousands (natage)  = metric tonnes
   // |  - 1 metric tonne = 2,204 pounds
-  // |  - Age 4 & Exploitable = pounds (instead of thousands of pounds)
-  // |  - Explotable biomass uses fishery selectivity
-  // |  - These estimates are snapshots at the time of the longline survey, which 
-  // |    are assumed equivalent to the conditions upon the start of the
-  // |    year's commercial fishery
 
 
+    // |-----------------------------------------------------------------------|
+    // | Summations
+    // |-----------------------------------------------------------------------|
+
+       for(i=styr; i<=endyr; i++)
+         {
+           for(j=1; j<=nages; j++)
+             {
+               natage(i,j) = natagef(i,j)+natagem(i,j);
+               tot_nm(i)   = sum(natagem(i));
+               tot_nf(i)   = sum(natagef(i));
+               tot_n(i)    = sum(natage(i));
+             }
+         }
+         
      for (i=styr;i<=endyr;i++)
        {
          recruitment(i) = natage(i,1);
     
-         tot_biomass(i) = (natagef(i)*wt_avg_srv1_f)+(natagem(i)*wt_avg_srv1_m); //metric tonnes
-    
-         Age4_biom(i)   = 2204 * (wt_avg_srv1_f(3,nages) * (natagef(i)(3,nages) *
-                                 mfexp(-srv1_fract*Mf))+
-                                 wt_avg_srv1_m(3,nages) * (natagem(i)(3,nages) *
-                                 mfexp(-srv1_fract*Mm)));
-
-         expl_biom(i)   = 2204 * (wt_avg_fshy_f * elem_prod(natagef(i) *
-                                  mfexp(-srv1_fract*Mf),fish_sel_f)+
-                                  wt_avg_fshy_m * elem_prod(natagem(i) *
-                                  mfexp(-srv1_fract*Mm),fish_sel_m));
-
+         tot_biomass(i) = (natagef(i)*wt_avg_srv_f)+(natagem(i)*wt_avg_srv_m); 
     	       
-         spawn_biom(i)  = 2204 * (elem_prod(wt_mature_s,natagef(i))*mfexp(-spawn_fract*Mf)); 
+         spawn_biom(i)  = natagef(i) *mfexp(-spawn_fract*Mf) * wt_mature_s; 
        }
+
 
 
 FUNCTION Penalties
@@ -1173,32 +1227,36 @@ FUNCTION Penalties
                        size_count(init_pop)*log(sig1);
                        
 
+
     // |------------------------------------------------------------------------|
     // | Fisheries deviations penalty
     // |------------------------------------------------------------------------|
-       int fpen = 0.2;
+       int fpen = 1;
        if (last_phase())
          {
-           fpen = 1;
+           fpen = 2;
          }
-      
-       penalties(3)  = 0.5*log(2*M_PI) + log(fpen) +
-                       0.5*(norm2(log_F_devsf)) / (2*square(fpen));
 
-       penalties(4)  = 0.5*log(2*M_PI) + log(fpen) +
-                       0.5*(norm2(log_F_devsm)) / (2*square(fpen));
+       penalties(3)  = dnorm(log_avg_F,log(0.09),0.5);
+       penalties(4)  = dnorm(log_mean_rec,5,fpen);
+       penalties(5)  = dnorm(log_mean_y1,6,fpen);
+       
 
 
 FUNCTION Catch_Likelihood
 
   catch_like.initialize();
 
-  
-  catch_like(1)  +=  0.5*log(2*M_PI)  +log(sigma_catch) +  0.5*(norm2(log(obs_catchf+oo) -
-                                     log(pred_catchf+oo))) / (2.*square(sigma_catch));
+  for(i=styr; i<=endyr; i++)
+  {
 
-  catch_like(2)  +=  0.5*log(2*M_PI)  +log(sigma_catch) +  0.5*(norm2(log(obs_catchm+oo) -
-                                     log(pred_catchm+oo))) / (2.*square(sigma_catch));
+  catch_like(1)  +=  0.5*log(2*M_PI)  +log(sigma_catch) +  0.5*(square(log(obs_catchf(i)+oo) -
+                                     log(pred_catchf(i)+oo))) / (2.*square(sigma_catch));
+
+  catch_like(2)  +=  0.5*log(2*M_PI)  +log(sigma_catch) +  0.5*(square(log(obs_catchm(i)+oo) -
+                                     log(pred_catchm(i)+oo))) / (2.*square(sigma_catch));
+
+  }
 
 
 
@@ -1212,34 +1270,16 @@ FUNCTION Surv_Likelihood
 
     for (i=1; i<=nyrs_MR; i++)
       {
-   
+   //
          surv_like(1) += 0.5*log(2*M_PI) + log(sqrt(obs_MR_var(i))) +
-                    0.5*norm2(obs_MR_abund-pred_MR_abund)
+                    0.5*(square(obs_MR_abund(i)-pred_MR_abund(i)))
                    / (2*obs_MR_var(i));
 
          surv_like(2) += 0.5*log(2*M_PI) + log(sqrt(obs_MR_var_SRV(i))) +
-                    0.5*norm2(obs_MR_abund_SRV-pred_MR_abund_SRV)
+                    0.5*(square(obs_MR_abund_SRV(i)-pred_MR_abund_SRV(i)))
                    / (2*obs_MR_var_SRV(i));
                    
       }
-
-     //for (i=1; i<=nyrs_MR; i++)
-     //  {
-     //    l_var(i)     = log(1. + (square(obs_MR_var(i))/
-     //                    square(obs_MR_abund(i))));
-     //                     
-     //    l_var_SRV(i) = log(1. + (square(obs_MR_var_SRV(i))/
-     //                    square(obs_MR_abund_SRV(i))));
-     //
-     //
-     //    surv_like(1) += 0.5*log(2*M_PI) + log(sqrt(l_var(i))) +
-     //                    0.5*(norm2(log(obs_MR_abund) - log(pred_MR_abund))) /
-     //                    (2*(l_var(i)));
-     //
-     //    surv_like(2) += 0.5*log(2*M_PI) + log(sqrt(l_var_SRV(i))) +
-     //                     0.5*(norm2(log(obs_MR_abund_SRV) - log(pred_MR_abund_SRV))) /
-     //                    (2*(l_var_SRV(i)));
-     //  }
 
 
 
@@ -1257,7 +1297,7 @@ FUNCTION Surv_Likelihood
 
 
   // |----------------------------------------------------------------------|
-  // | ADF&G survey  CPUE - normal 1996- present
+  // | ADF&G survey  CPUE - normal 1996 - present
   // |----------------------------------------------------------------------|
   
   for (i=1; i<=nyrs_cpue2; i++)
@@ -1308,17 +1348,20 @@ FUNCTION Multinomial_Likelihood
     // | Longline survey age compositions
     // |--------------------------------------------------------------------|
 
-       for (i=1; i <= nyrs_srv1_age; i++)
+       for (i=1; i <= nyrs_srv_age; i++)
          {
-           age_like(3) -= nsamples_srv1_agem(i)*((oac_srv1m(i) + oo) *
-                                                  log(eac_srv1m(i) + oo)) ;
+           age_like(3) -= nsamples_srv_agem(i)*((oac_srvm(i) + oo) *
+                                                  log(eac_srvm(i) + oo)) ;
                                                   
-           age_like(4) -= nsamples_srv1_agef(i)*((oac_srv1f(i) + oo) *
-                                                  log(eac_srv1f(i) + oo)) ; 
+           age_like(4) -= nsamples_srv_agef(i)*((oac_srvf(i) + oo) *
+                                                  log(eac_srvf(i) + oo)) ; 
          }
 
 
-  age_like   -= offset; 
+    age_like(1)   -= offset(1);
+    age_like(2)   -= offset(2);
+    age_like(3)   -= offset(3);
+    age_like(4)   -= offset(4); 
 
 
 FUNCTION Objective_Function
@@ -1339,9 +1382,9 @@ FUNCTION Objective_Function
   // | SUM DATA LIKELIHOODS
   // |----------------------------------------------------------------------|
 
-     Like           = sum(catch_like);	
+     Like            = sum(catch_like);	
      Like           += sum(surv_like);	
-     Like           += sum(age_like);	
+      Like           += sum(age_like);	
 
      obj_fun    = Like;         // Put here to capture the data likelihood
 
@@ -1362,20 +1405,17 @@ FUNCTION spr
   // |----------------------------------------------------------------------|
   // | SPR RATES - ADDED TO LIKELIHOOD AS 'sprpen'
   // |----------------------------------------------------------------------|
-  // | The code below has been modded a bit to match the R script (YPR.R)
-  // |  which, in turn, was written to reflect the older Excel
-  // |  yield-per-recruit file. Thus, while Nspr(foo,1) can be set equal to
-  // |  1, 500, or a bajillion, it is set to 500.
+  // | Note that this is only calculated for female spawning biomass
           
 
   // |----------------------------------------------------------------------|
   // | RECRUITMENT (AGE 2)
   // |----------------------------------------------------------------------|
 
-     for (i=1;i<=8;i++)
+     for (i=1;i<=10;i++)
        {
-         Nspr(i,1) = 500.;
-         N0(i,1) = mean(recruitment(1982,endyr-recage));
+         Nspr(i,1) = 1.;
+         N0(i,1) = mean(recruitment(1982,endyr-recage))/2;
        }
 
 
@@ -1388,7 +1428,7 @@ FUNCTION spr
          Nspr(1,j) = Nspr(1,j-1) * mfexp(-1.*Mf);
          N0(1,j)   = N0(1,j-1)   * mfexp(-1.*Mf);
 
-       for (i=2; i<=8; i++)
+       for (i=2; i<=10; i++)
          {
            Nspr(i,j) = Nspr(i,j-1) * mfexp(-1.*(Mf+mF(i-1)
                                                 *fish_sel_f(j-1)));
@@ -1407,7 +1447,7 @@ FUNCTION spr
       N0(1,nages)   += N0(1,nages)   * mfexp(-1.*Mf);
 
 
-     for(i=2; i<=8; i++)
+     for(i=2; i<=10; i++)
       {
          Nspr(i,nages) += Nspr(i,nages) * mfexp(-1.*(Mf+mF(i-1)*
                                                 fish_sel_f(nages)));
@@ -1420,17 +1460,20 @@ FUNCTION spr
   // | PROJECTED BIOMASS FOR F LEVELS
   // |----------------------------------------------------------------------|
 
-     SBx(1) +=  2.20462 * Nspr(1)*wt_mature_s;
+     //SBx(1) +=  2.20462 * Nspr(1)*wt_mature_s;
+
+     SBx(1) +=  Nspr(1)*wt_mature_s*mfexp(-spawn_fract*Mf);
 
      
      for (j=1;j<=nages;j++)
        {
-         for(i=2; i<=8; i++)
+         for(i=2; i<=10; i++)
            {
-             SBx(i) += 2.20462 * Nspr(i,j)*wt_mature_s(j);
+             SBx(i) += Nspr(i,j)*wt_mature_s(j)*
+                       mfexp(-spawn_fract*(Mf+mF(i-1)*fish_sel_f(j)));;
            }
 
-         for(i=1; i<=8; i++)
+         for(i=1; i<=10; i++)
            {
              Bx(i) +=  N0(i,j)*wt_mature_s(j);
            }
@@ -1441,7 +1484,9 @@ FUNCTION spr
   // | CALCULATE F LEVELS
   // |----------------------------------------------------------------------|
   
-     sprpen    = 100.*square(SBx(8)/SBx(1)-0.6);
+     sprpen    = 100.*square(SBx(10)/SBx(1)-0.7);
+     sprpen   += 100.*square(SBx(9)/SBx(1)-0.65);
+     sprpen   += 100.*square(SBx(8)/SBx(1)-0.6);
      sprpen   += 100.*square(SBx(7)/SBx(1)-0.55);
      sprpen   += 100.*square(SBx(6)/SBx(1)-0.5);
      sprpen   += 100.*square(SBx(5)/SBx(1)-0.45);
@@ -1450,26 +1495,29 @@ FUNCTION spr
      sprpen   += 100.*square(SBx(2)/SBx(1)-0.3);
   
      B40 = SBx(4)*mean(recruitment(1982,endyr-recage));
+     F55 = mF(6);
      F50 = mF(5);
+     F45 = mF(4);
      F40 = mF(3);
-     F35 = mF(2);
-
-     // |-------------------------------------|
-     // | NOTE
-     // |-------------------------------------|
-     // | As a check, mF vector values (F50,
-     // |  F40, etc.) match the output from
-     // |  'YPR.R' to the fourth decimal place
 
 
 FUNCTION Projection
 
-  // |------------------------------------------------------------------------|
+  // |--------------------------------------------------------------------------|
   // | ABUNDANCE FOR FIRST PROJECTION YEAR (endyr+1)
-  // |------------------------------------------------------------------------|
+  // |--------------------------------------------------------------------------|
+     void ("Note that all the jumping up and down that follows can be         ");
+     void ("largely circumnagivated with a singe call:                        ");
+     void ("ABC =  2204*sum(                                                  ");
+     void ("       ((elem_prod(wt_avg_fshy_f,elem_prod(elem_div(Fself, Z1),   ");
+     void ("                   elem_prod(1-S1,(natage_projf))))) +            ");
+     void ("        elem_prod(wt_avg_fshy_m,elem_prod(elem_div(Fselm, Z2),    ");
+     void ("                   elem_prod(1-S2,(natage_projm))))) );           ");
+     void (" This way just makes it easier to go step by step and mod things  ");
+  //----------------------------------------------------------------------------|
 
-
- // |-------------------------------------------------------------------------|
+ 
+  // |-------------------------------------------------------------------------|
   // | Population Projection (endyr + 1)
   // |-------------------------------------------------------------------------|
 
@@ -1478,56 +1526,71 @@ FUNCTION Projection
     // |-----------------------------------------------------------------------|
     // | Mean over recent 15 years, excluding last two model years (variability)
 
-       natage_projf(1)  = 0.5 * mean(mfexp(log_mean_rec
-                                + log_rec_dev(endyr-16, endyr-2)));
+     int k;
 
-       natage_projm(1)  = 0.5 * mean(mfexp(log_mean_rec
-                                + log_rec_dev(endyr-16, endyr-2)));
+     if(mceval_phase()) 
+       {
+         // random_number_generator r(1000);
+         // standard deviation of mean recruitment
+         stdev_rec   = sqrt(norm2(value(log_rec_dev(1982,endyr-recage))-
+                       mean(value(log_rec_dev(1982,endyr-recage))))/
+                       (size_count(value(log_rec_dev))-1));
+                          
+         k=k+1;
+            
+         // randomized projected recruitment
+         N_ABC_f(endyr+1,1) = 0.5 * (mfexp(value(log(mean(recruitment(1982,endyr-recage)))+
+                                     stdev_rec*stdev_rec/2+stdev_rec*randn(k))));
+
+         N_ABC_m(endyr+1,1) = 0.5 * (mfexp(value(log(mean(recruitment(1982,endyr-recage)))+
+                                     stdev_rec*stdev_rec/2+stdev_rec*randn(k)))); 
+
+         N_OFL_f(endyr+1,1) = 0.5 * (mfexp(value(log(mean(recruitment(1982,endyr-recage)))+
+                                     stdev_rec*stdev_rec/2+stdev_rec*randn(k))));
+
+         N_OFL_m(endyr+1,1) = 0.5 * (mfexp(value(log(mean(recruitment(1982,endyr-recage)))+
+                                     stdev_rec*stdev_rec/2+stdev_rec*randn(k))));
+       }
+          
+     else 
+       {
+         N_ABC_f(endyr+1,1) = 0.5 * (value(mean(recruitment(1982,endyr-recage))));
+         N_ABC_m(endyr+1,1) = 0.5 * (value(mean(recruitment(1982,endyr-recage))));
+                  
+         N_OFL_f(endyr+1,1) = 0.5 * (value(mean(recruitment(1982,endyr-recage))));
+         N_OFL_m(endyr+1,1) = 0.5 * (value(mean(recruitment(1982,endyr-recage))));
+
+       }
+
                                 
 
     // |-----------------------------------------------------------------------|
     // | AGES 3 - 42
     // |-----------------------------------------------------------------------|
 
-       //for(j=2; j<=nages; j++)
-        // {
-        //   natage_projf(j)  = natagef(endyr,j-1)*Sf(endyr,j-1);
-        //   natage_projm(j)  = natagem(endyr,j-1)*Sm(endyr,j-1); 
-        // }  
+     for(j=2; j<=nages;j++) 
+       {
+          N_ABC_f(endyr+1,j) = natagef(endyr,j-1)*Sf(endyr,j-1);
+          N_ABC_m(endyr+1,j) = natagem(endyr,j-1)*Sm(endyr,j-1);
+                    
+          N_OFL_f(endyr+1,j) = natagef(endyr,j-1)*Sf(endyr,j-1);
+          N_OFL_m(endyr+1,j) = natagem(endyr,j-1)*Sm(endyr,j-1);
 
-       natage_projf(2, nages) = ++elem_prod(natagef(endyr)(1,nages-1),
-                                  Sf(endyr)(1,nages-1));
-
-       natage_projm(2, nages) = ++elem_prod(natagem(endyr)(1,nages-1),
-                                  Sm(endyr)(1,nages-1));
+       }
 
        
     // |-----------------------------------------------------------------------|
     // | PLUS CLASS
     // |-----------------------------------------------------------------------|
 
-       natage_projf(nages)   += natage_projf(nages) * Sf(endyr,nages);
-       natage_projm(nages)   += natage_projm(nages) * Sm(endyr,nages);
-       
 
-    // |-----------------------------------------------------------------------|
-    // | Summations
-    // |-----------------------------------------------------------------------|
-
-       for(j=1; j<=nages; j++)
-         {
-            natage_proj(j) = natage_projf(j)+natage_projm(j);
-         }
-
-        for(j=3; j<=nages; j++)
-          {
-            mr_f_proj(j-2) = natage_projf(j);
-            mr_m_proj(j-2) = natage_projm(j);
-            }
+          N_ABC_f(endyr+1,nages) = natagef(endyr,nages)*Sf(endyr,nages);
+          N_ABC_m(endyr+1,nages) = natagem(endyr,nages)*Sm(endyr,nages);
+                    
+          N_OFL_f(endyr+1,nages) = natagef(endyr,nages)*Sf(endyr,nages);
+          N_OFL_m(endyr+1,nages) = natagem(endyr,nages)*Sm(endyr,nages);
 
 
-
-FUNCTION Get_ABC
 
   // |-------------------------------------------------------------------------|
   // | Note that the calcs below reflect the ADF&G regulations for sablefish
@@ -1536,96 +1599,123 @@ FUNCTION Get_ABC
   // | Note that fishery selectivities and fishery weights used to compute ABC
 
      ABC.initialize();
-     ABC_all.initialize();
-     Age4_biom_proj.initialize();
-     expl_abund_proj.initialize();
-     expl_biom_proj.initialize();
 
+     for (j=1;j<=nages;j++)
+       {  
+         FABC_f(j) = fish_sel_f(j) * F50;
+         FABC_m(j) = fish_sel_m(j) * F50;
+         
+         FOFL_f(j) = fish_sel_f(j) * F45;
+         FOFL_m(j) = fish_sel_m(j) * F45;
 
-    for(j=3; j<=nages; j++)
-      {
-      
-     Fself(j-2) = F50*fish_sel_f(j);
-     Fselm(j-2) = F50*fish_sel_m(j);
-     wt_f_proj(j-2) = wt_avg_fshy_f(j);
-     wt_m_proj(j-2) = wt_avg_fshy_m(j);
+         ZABC_f(j) = FABC_f(j) + Mf;
+         ZABC_m(j) = FABC_m(j) + Mm;
+         ZOFL_f(j) = FOFL_f(j) + Mf;
+         ZOFL_m(j) = FOFL_m(j) + Mm;
+
        }
 
-     Z1 = Mf + Fself;
-     S1 = mfexp(-Z1);
-     Z2 = Mm + Fselm;
-     S2 = mfexp(-Z2);
+
+  // |------------------------------------------------------------------------|
+  // | AGES TWO THROUGH +
+  // |------------------------------------------------------------------------|
+
+     for (i=endyr+2;i<=endyr+15;i++)
+       {
+
+         if(mceval_phase()) 
+           {
+             // random_number_generator r(1000);
+             // standard deviation of mean recruitment
+             stdev_rec   = sqrt(norm2(value(log_rec_dev(1982,endyr-recage))-
+                           mean(value(log_rec_dev(1982,endyr-recage))))/
+                           (size_count(value(log_rec_dev))-1));
+                          
+             k=k+1;
+            
+             // randomized projected recruitment
+             N_ABC_f(i,1) = 0.5 * (mfexp(value(log(mean(recruitment(1982,endyr-recage)))+
+                                   stdev_rec*stdev_rec/2+stdev_rec*randn(k))));
+
+             N_ABC_m(i,1) = 0.5 * (mfexp(value(log(mean(recruitment(1982,endyr-recage)))+
+                                   stdev_rec*stdev_rec/2+stdev_rec*randn(k)))); 
+
+             N_OFL_f(i,1) = 0.5 * (mfexp(value(log(mean(recruitment(1982,endyr-recage)))+
+                                   stdev_rec*stdev_rec/2+stdev_rec*randn(k))));
+
+             N_OFL_m(i,1) = 0.5 * (mfexp(value(log(mean(recruitment(1982,endyr-recage)))+
+                                   stdev_rec*stdev_rec/2+stdev_rec*randn(k))));
+           }
+          
+         else 
+           {
+             N_ABC_f(i,1) = 0.5 * (value(mean(recruitment(1982,endyr-recage))));
+             N_ABC_m(i,1) = 0.5 * (value(mean(recruitment(1982,endyr-recage))));
+                  
+             N_OFL_f(i,1) = 0.5 * (value(mean(recruitment(1982,endyr-recage))));
+             N_OFL_m(i,1) = 0.5 * (value(mean(recruitment(1982,endyr-recage))));
+
+       }
+         
+           for(j=2; j<=nages;j++) 
+             {
+               N_ABC_f(i,j) = N_ABC_f(i-1,j-1)* mfexp(-FABC_f(j-1)-Mf);
+               N_ABC_m(i,j) = N_ABC_m(i-1,j-1)* mfexp(-FABC_m(j-1)-Mm);
+               
+               N_OFL_f(i,j) = N_OFL_f(i-1,j-1)* mfexp(-FOFL_f(j-1)-Mf);
+               N_OFL_m(i,j) = N_OFL_m(i-1,j-1)* mfexp(-FOFL_m(j-1)-Mm);
+             }
 
 
-  // |-------------------------------------------------------------------------|
-  // | ALLOWABLE BIOLOGICAL CATCH
-  // |-------------------------------------------------------------------------|
+         N_ABC_f(i,nages) += N_ABC_f(i,nages) * mfexp(-FABC_f(nages)-Mf);
+         N_ABC_m(i,nages) += N_ABC_m(i,nages) * mfexp(-FABC_m(nages)-Mm);
 
-     // |----------------------------------------------------------------------|
-     // | Projected year (endyr + 1)
-     // |----------------------------------------------------------------------|
-
-        
-        ABC = 2204 *sum(  ((elem_prod(wt_f_proj,elem_prod(elem_div(Fself, Z1),
-                                       elem_prod(1-S1,(mr_f_proj))))) +
-                       elem_prod(wt_m_proj,elem_prod(elem_div(Fselm, Z2),
-                                       elem_prod(1-S2,(mr_m_proj))))) );
+         N_OFL_f(i,nages) += N_OFL_f(i,nages) * mfexp(-FOFL_f(nages)-Mf);
+         N_OFL_m(i,nages) += N_OFL_m(i,nages) * mfexp(-FOFL_m(nages)-Mm);
+         
+       }
 
 
-     // |----------------------------------------------------------------------|
-     // | All modeled years for comparison with implemented catch levels
-     // |----------------------------------------------------------------------|
+  // |------------------------------------------------------------------------|
+  // | CATCH AND BIOMASS
+  // |------------------------------------------------------------------------|
+
+     for (i=endyr+1; i<=endyr+15; i++)
+       {
+         for (j=1; j<=nages; j++)
+           {
+             catage_ABC_f(i) = elem_div(elem_prod(elem_prod(N_ABC_f(i),FABC_f),
+                                       (1.-mfexp(-ZABC_f))),ZABC_f);
+             catage_ABC_m(i) = elem_div(elem_prod(elem_prod(N_ABC_m(i),FABC_m),
+                                       (1.-mfexp(-ZABC_m))),ZABC_m);
+             
+             catage_OFL_f(i) = elem_div(elem_prod(elem_prod(N_OFL_f(i),FOFL_f),
+                                                  (1.-mfexp(-ZOFL_f))),ZOFL_f);
+             catage_OFL_m(i) = elem_div(elem_prod(elem_prod(N_OFL_m(i),FOFL_m),
+                                                  (1.-mfexp(-ZOFL_m))),ZOFL_m);
+
+             catch_ABC_f(i) = catage_ABC_f(i) * wt_avg_fshy_f;
+             catch_ABC_m(i) = catage_ABC_m(i) * wt_avg_fshy_m;
+             
+             catch_OFL_f(i) = catage_OFL_f(i) * wt_avg_fshy_f;
+             catch_OFL_m(i) = catage_OFL_m(i) * wt_avg_fshy_m;
+ 
+             
+             spawn_biom_ABC(i) = (N_ABC_f(i) * mfexp(-spawn_fract * Mf))
+                                             * wt_mature_f;
+             spawn_biom_OFL(i) = (N_OFL_f(i) * mfexp(-spawn_fract * Mf))
+                                             * wt_mature_f;
+
+           }
+       }
 
 
-  // |-------------------------------------------------------------------------|
-  // | Mean recruitment
-  // |-------------------------------------------------------------------------|
+     ABC = catch_ABC_f(endyr+1)+catch_ABC_m(endyr+1);
+     OFL = catch_OFL_f(endyr+1)+catch_OFL_m(endyr+1);
 
-     avg_rec        = mean(recruitment(styr+2,endyr-recage));	 
+     ABC_pounds = 2204 * (ABC);
+     OFL_pounds = 2204 * (OFL);
 
-
-  // |-------------------------------------------------------------------------|
-  // | Trend in spawning biomass relative to last year
-  // |-------------------------------------------------------------------------|
-
-     //spbiom_trend   = 0;//spawn_biom(endyr)/spawn_biom(endyr-1);
-	
-
-  // |-------------------------------------------------------------------------|
-  // | Next year's projected age 4+ biomass at time of survey
-  // |-------------------------------------------------------------------------|
-
-    Age4_biom_proj =  2204 * (wt_avg_srv1_f(3,nages) * (natage_projf(3,nages) *
-                              mfexp(-srv1_fract*Mf)) +
-                              wt_avg_srv1_m(3,nages) * (natage_projm(3,nages) *
-                              mfexp(-srv1_fract*Mm)));
-
-  // |-------------------------------------------------------------------------|
-  // | Next year's projected exploited abundance at time of survey
-  // |-------------------------------------------------------------------------|
-
-        for (int j=3; j<=nages; j++)
-        {
-        expl_abund_proj_comp(j-2)  = natage_projf(j)*fish_sel_f(j)  +
-                                   natage_projm(j)*fish_sel_m(j);
-         }
-
-
-
-     expl_abund_proj  = 1000 * sum(expl_biom_proj_comp); 
-
-  // |-------------------------------------------------------------------------|
-  // | Next year's projected exploited biomass
-  // |-------------------------------------------------------------------------|
-
-        for (int j=3; j<=nages; j++)
-        {
-     expl_biom_proj_comp(j-2) =  (natage_projf(j) * wt_mature_s(j));//fish_sel_f(j) *wt_avg_fshy_f(j)) +
-                                   //(natage_projm(j) * fish_sel_m(j)*wt_avg_fshy_m(j));
-     }
-     expl_biom_proj = 2204 * sum(expl_biom_proj_comp);
-
-	                  
 
 
 
@@ -1698,7 +1788,7 @@ FINAL_SECTION
      int ii;
      int jj;
 
-     int nboot;
+     //int nboot;
      int nwork;
      int ndump;
      int marker;
@@ -1906,7 +1996,7 @@ FINAL_SECTION
   // |------------------------------------------------------------------------|
   
      void (" 'nboot' itself is located in the control file");
-
+      
       nwork = 0;             // number of reasonable bootstrap vectors
       ndump = 0;             // number of unreasonable bootstrap vectors
 
@@ -1992,27 +2082,25 @@ FINAL_SECTION
      mF.initialize();
 
 
-     log_mean_rec = bootN(1);                  // Mean recruitment;
-     log_mean_y1  = bootN(2);                  // Mean Year 1 naa;
+     log_mean_rec =   bootN(1);             // Mean recruitment;
+     log_mean_y1  =   bootN(2);             // Mean Year 1 naa;
+     log_avg_F    =   bootN(3);             // Mean F
+     log_comm_q    =  bootN(4);             // Catchability (commercial CPUE)
+     log_surv_q1   =  bootN(5);             // Catchability (survey CPUE 1)
+     log_surv_q2   =  bootN(6);             // Catchability (survey CPUE 2)
 
-     for(ii = 3; ii<=42; ii++)
+
+     for(ii = 7; ii<=46; ii++)
        {
-         init_pop(ii-2) = bootN(ii);          // Year 1 abundance deviations
+         init_pop(ii-6) = bootN(ii);          // Year 1 abundance deviations
        }
 
-     for(ii = 43; ii<=78; ii++)
+     for(ii = 47; ii<=82; ii++)
        {
-         log_rec_dev(ii+styr-43) = bootN(ii);   // Recruitment deviations
+         log_rec_dev(ii+styr-47) = bootN(ii);   // Recruitment deviations
        }
  
-     log_surv_q1   =  bootN(79);            // Catchability (survey CPUE 1)
-     log_surv_q2   =  bootN(80);            // Catchability (survey CPUE 2)
-     log_comm_q    =  bootN(81);            // Catchability (commercial CPUE)
 
-     log_avg_F     =  bootN(82);            // Mean F
-
-
-      
     for(ii = 83; ii<=118; ii++)
       {
         log_F_devsf(ii - 83+styr) = bootN(ii);      // F deviations, females
@@ -2094,10 +2182,11 @@ FINAL_SECTION
      Mortality();
      Abundance();
      Catch();
-     Predicted();
      Population();
-     spr();	
-     Get_ABC();
+     Predicted();
+
+     //spr();	
+     //Get_ABC();
 
   // |-----------------------------------------------------------|
   // | SAID EXTERNAL WRITING
@@ -2151,12 +2240,12 @@ FINAL_SECTION
 
    ofstream ofs9("agef_srv.txt",ios::app);
     {
-        ofs9<<eac_srv1f<<endl;
+        ofs9<<eac_srvf<<endl;
     }
 
    ofstream ofs10("agem_srv.txt",ios::app);
     {
-        ofs10<<eac_srv1m<<endl;
+        ofs10<<eac_srvm<<endl;
     }
 
    ofstream ofs11("Ff.txt",ios::app);
@@ -2223,6 +2312,16 @@ FINAL_SECTION
     cout<<"                 %%%%%*%%%%              "<<endl;
     cout<<"            ,,,,,,||,,,,||,,,,,          "<<endl;
     cout<<""<<endl;
+    
+
+FUNCTION double sdnr(const dvar_vector& pred,const dvector& obs,double m)
+  RETURN_ARRAYS_INCREMENT();
+  double sdnr;
+  dvector pp = value(pred);
+  int ntmp = -obs.indexmin()+obs.indexmax();
+  sdnr = std_dev(elem_div(obs-pp,sqrt(elem_prod(pp,(1.-pp))/m)));
+  RETURN_ARRAYS_DECREMENT();
+  return sdnr;
 
 
 GLOBALS_SECTION
@@ -2275,148 +2374,42 @@ REPORT_SECTION
   REPORT(age_like);
   REPORT(surv_like);
   REPORT(penalties);
-  report<<""<<endl;
-  report<<""<<endl;
-  REPORT(ABC)
-  report<<""<<endl;
+  REPORT(ABC_pounds)
   REPORT(obs_MR_abund)
   REPORT(pred_MR_abund)
-  report<<""<<endl;
   REPORT(obs_MR_abund_SRV)
   REPORT(pred_MR_abund_SRV)
-  report<<""<<endl;
+  REPORT(pred_catchf);
+  REPORT(pred_catchm);
+  REPORT(pred_catch);
   REPORT(natagef);
   REPORT(natagem);
-  REPORT(spawn_biom);
-
-
- //report<<"Report for the "<<BaseFileName<<" sablefish age-structured model"<<endl;
-//report<<""<<endl;
-//
-//report<<"Number parameters estimated"<<endl;
-//report<<initial_params::nvarcalc()<<endl;
-//report<<" "<<endl;
-
-//report<<""<<endl;
-//report << "obj_fun "<< obj_fun <<endl;
-//report << "//" <<endl;
-//report<<"catch_like"<<endl;
-//report<< catch_like<<endl;
-//report<<"age_like"<<endl;
-//report<< age_like<<endl;
-//report<<"surv_like"<<endl;
-//report<< surv_like<<endl;
-//report<<"penalties"<<endl;
-//report<< penalties<<endl;
-//report<<" "<<endl;
-
-//report <<"Nf_proj"<<endl;
-//report<<natage_projf<<endl;
-////report <<"Nm_proj"<<endl;
-//report<<natage_projm<<endl;
-//report<<""<<endl;
-//report <<"ABC: "<<ABC<<endl;
-//report << "Exploited abundance projected" << " " <<expl_abund_proj<<endl;
-//report << "Exploited biomass projected" << " " <<expl_biom_proj<<endl;
-//report << "//" <<endl;
-//////////////////////////////////
-//report << "Year////////" << yrs_MR//<<endl;
-////report << "Predicted MR abund// " << pred_MR_abund<<endl;
-//report << "Observed MR abund////" << obs_MR_abund//<<endl<< endl;
-//report <<""<<endl;
-//////report << "Predicted MR abund SRV//" << pred_MR_abund_SRV<<endl;
-//report << "Observed MR abund SRV////" << obs_MR_abund_SRV//<<endl<< endl;
-//report <<""<<endl;
-//
-//report<<"Mean Rec"<<endl;
-//report<< avg_rec<<endl;
-//report<<" "<<endl;
-
-//report<<"mF"<<endl;
-//report<<mF<<endl;
- 
-//report<<"obs_cpue1"<<endl;
-//report<< obs_cpue1_biom<<endl;
-//report<<"pred_cpue1"<<endl;
-//report<< pred_cpue1<<endl;
-
-//report<<"obs_cpue2"<<endl;
-//report<< obs_cpue2_biom<<endl;
-//report<<"pred_cpue2"<<endl;
-//report<< pred_cpue2<<endl;
-//report<<""<<endl;
-
-//report<<"obs_fshy_cpue"<<endl;
-//report<< obs_fshy_cpue<<endl;
-////report<<"pred_fshy_cpue"<<endl;
-//report<< pred_fshy_cpue<<endl;
-//report<<""<<endl;
-
-
-//report<<"natagef"<<endl; 
-//report<< natagef<<endl;
-//report<<""<<endl;
-////report<<"spawn_biom"<<endl; 
-//report<< spawn_biom<<endl;
-////report<<"Ff"<<endl; 
-//report<< Ff<<endl;
-//////report<<"Fm"<<endl; 
-//report<< Fm<<endl;
-//report<<""<<endl;
-
-//report<<"proj_F_catch"<<endl;
-//report<<(elem_prod(wt_f_proj,elem_prod(elem_div(Fself, Z1),
-////////////////////////////////////// elem_prod(1-S1,(mr_f_proj)))))<<endl;
-//report<<"proj_M_catch"<<endl;
-//report<<(elem_prod(wt_m_proj,elem_prod(elem_div(Fselm, Z2),
-//////////////////////////////////////yy elem_prod(1-S2,(mr_m_proj)))))<<endl;
-
-
-
-
-
-
-
-
-
-//FUNCTION Selectivity
-
-  // |-----------------------------------------------------------------------|
-  // | FISHERY SELECTIVITIES - keep for future versions
-  // |-----------------------------------------------------------------------|
-  // | It is assumed that selectivities for the commercial longline fishery
-  // | and the ADF&G longline survey are different
-  // |
-
-
-    // |-----------------------------------------------------|
-    // | Survey
-    // |-----------------------------------------------------|
-    
-    //for (j=1;j<=nages;j++)
-      //{
-      //  srv1_sel_m(j) = 1/(1+mfexp(-mfexp(srv1_sel_slope_m)*(j-mfexp(srv1_sel_a50_m))));
-      //  srv1_sel_f(j) = 1/(1+mfexp(-mfexp(srv1_sel_slope_f)*(j-mfexp(srv1_sel_a50_f))));
-      //}
-
-    //Scale to 1
+  REPORT(mF);
+  REPORT(tot_biomass);
+  REPORT(catage_ABC_f);
+  REPORT(catage_ABC_m);
+  REPORT(catch_ABC_f);
+  REPORT(catch_ABC_m);
+  REPORT(obs_cpue1_biom);
+  REPORT(pred_cpue1);
+  REPORT(obs_cpue2_biom);
+  REPORT(pred_cpue2);
+  REPORT(obs_fshy_cpue);
+  REPORT(pred_fshy_cpue);
+  REPORT(tot_nm);
+  REPORT(tot_nf);
+  REPORT(tot_n);
+  REPORT(wt_mature_s);
+  REPORT(mfexp(-spawn_fract*Mf));
+      //SDNR
+  REPORT(effn_fish_agef);
+  REPORT(sdnr_fish_agef);
+  REPORT(effn_fish_agem);
+  REPORT(sdnr_fish_agem);
   
-    //srv1_sel_m   = srv1_sel_m / max(srv1_sel_m);         
-    //srv1_sel_f   = srv1_sel_f / max(srv1_sel_f);
+  REPORT(effn_srv_agef);
+  REPORT(sdnr_srv_agef);
+  REPORT(effn_srv_agem);
+  REPORT(sdnr_srv_agem);
 
 
-    // |-----------------------------------------------------|
-    // | Fishery
-    // |-----------------------------------------------------|
-
-    //for (j=1;j<=nages;j++)
-      //{ 
-        //fish_sel_m(j) = 1/(1+mfexp(-mfexp(fish_sel_slope_m)*(j-mfexp(fish_sel_a50_m))));
-        //fish_sel_f(j) = 1/(1+mfexp(-mfexp(fish_sel_slope_f)*(j-mfexp(fish_sel_a50_f))));
-      //}
-
-    //Scale to 1
-  
-    //fish_sel_m   = fish_sel_m / max(fish_sel_m);       
-    //fish_sel_f   = fish_sel_f / max(fish_sel_f);
- 
