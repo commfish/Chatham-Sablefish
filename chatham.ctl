@@ -40,7 +40,7 @@
     4.0     0.00    8.00      1      1     0.0      1   # log_mean_y1
 #
 ## - fishing mortality
-   -3.5   -10.0     0.0       2      1     0.0      1   # log_avg_F   
+   -2.5     -5.0     0.0      2      1     0.0      1   # log_avg_F   
 #
 ## - catchability
    -2.0    -20.0    0.00      2      0     0.0      0   # log_comm_q

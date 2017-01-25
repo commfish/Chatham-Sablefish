@@ -54,6 +54,64 @@ DATA_SECTION
      !!time(&start);
      
 
+  // |---------------------------------------------------------------------------|
+  // | COMMAND LINE ARGUMENT FOR -RETRO (from Steve Martell)
+  // |
+  // | I have added the -STEP flag to deal with the fact that the mark-recapture
+  // | survey data are not annually updated and have skipped years
+  // |--------------------------------------------------------------------------|
+
+     !!"  |-----------------------------------------------------------------  |  ";
+     !!"  |                       -RETRO -STEP  flag values                   |  ";
+     !!"  |                                                                   |  ";
+     !!"  | For the current model ending in 2015::                            |  ";
+     !!"  |                                                                   |  ";
+     !!"  | Retrospective 1  (remove 1 year of data)   ->   -retro 1 -step 1  |  ";
+     !!"  | Retrospective 2  (remove 2 year of data)   ->   -retro 2 -step 1  |  ";
+     !!"  | Retrospective 3  (remove 3 year of data)   ->   -retro 3 -step 2  |  ";
+     !!"  | Retrospective 4  (remove 4 year of data)   ->   -retro 4 -step 3  |  ";
+     !!"  | Retrospective 5  (remove 5 year of data)   ->   -retro 5 -step 3  |  ";
+     !!"  | Retrospective 6  (remove 6 year of data)   ->   -retro 6 -step 4  |  ";
+     !!"  | Retrospective 7  (remove 7 year of data)   ->   -retro 7 -step 5  |  ";
+     !!"  | Retrospective 8  (remove 8 year of data)   ->   -retro 8 -step 6  |  ";
+     !!"  | Retrospective 9  (remove 9 year of data)   ->   -retro 9 -step 7  |  ";
+     !!"  | Retrospective 10 (remove 10 years of data) ->   -retro 10 -step 8 |  ";
+     !!"  |                                                                   |  ";
+     !!"  |-----------------------------------------------------------------  |  ";
+     
+     int retro_yrs;
+     !!retro_yrs = 0;
+
+     int retro_mod;
+     !!retro_mod = 0;
+     
+ LOCAL_CALCS
+
+     int on = 0;
+     int mn = 0;
+
+     if (ad_comm::argc > 1)
+       {
+         retro_yrs = 0;
+         retro_mod = 0;
+           if ( (on=option_match(ad_comm::argc,ad_comm::argv,"-retro")) > -1   &&
+                (mn=option_match(ad_comm::argc,ad_comm::argv,"-step"))  > -1 )
+             {
+               retro_yrs = atoi(ad_comm::argv[on+1]);
+               retro_mod = atoi(ad_comm::argv[mn+1]);
+               cout<<"|------------------------------------------|\n";
+               cout<<"|   Implementing retrospective analysis    |\n";
+               cout<<"|------------------------------------------|\n";
+               cout<<"|   Number of retro years = "<<retro_yrs<<endl;
+               cout<<"|   Number of mod   years = "<<retro_mod<<endl;
+               cout<<"  "<<endl;
+             }
+       }
+
+
+ END_CALCS
+
+
   // |--------------------------------------------------------------------------|
   // | STRINGS FOR INPUT FILES                                                  |
   // |--------------------------------------------------------------------------|
@@ -365,22 +423,43 @@ DATA_SECTION
   // | kvk - 12/10/2015
 
      init_matrix   ageage(1,nages,1,nages)
+     
+
+  // |--------------------------------------------------------------------------|
+  // | END OF FILE MARKER                             
+  // |--------------------------------------------------------------------------|
+
+     init_int eof_dat;
+     
+   
+  // |--------------------------------------------------------------------------|
+  // | MINUTIAE                              
+  // |--------------------------------------------------------------------------|
+  // | 
+  // | 1) integer definitions 
+  // | 2) 'small number' for adding to log functions
+  // | 3) offsets for multinomials to allow perfect fit = 0
    
   // |  Multinomial "offset", length must be at least as long as number of multinomial likelihoods
   // |  Calculate "offset" for multinomials - fishery age, survey age
   // |  "Offset" value lets the multinomial likelihood equal zero when the observed and predicted are equal
   // |  First step is to ensure that the data are expressed as proportions
 
-     vector offset(1,4);       
-  
-     number oo;
-     !!oo = 0.000001;
- 
      int i
      int j
 
-     init_number eof_dat
+     number oo;
+     !!oo = 0.000001;
+     
+     vector offset(1,4);
+     
   
+  // |-------------------------------------------------------------------------|
+  // | RETROSPECTIVE MOD OF 'endyr'
+  // |-------------------------------------------------------------------------|
+
+     !! endyr = endyr - retro_yrs;
+     
 
  LOCAL_CALCS
 
@@ -408,7 +487,7 @@ DATA_SECTION
     offset.initialize();
 
 
-    for (i=1; i<=nyrs_fish_age; i++)
+    for (i=1; i<=nyrs_fish_age-retro_yrs; i++)
       {
         oac_fishm(i)/=sum(oac_fishm(i));
         oac_fishf(i)/=sum(oac_fishf(i));
@@ -416,7 +495,7 @@ DATA_SECTION
         offset(2) -= nsamples_fish_agef(i)*((oac_fishf(i) + 0.00001)*log(oac_fishf(i) + 0.00001));
       }
 
-     for (i=1; i<=nyrs_srv_age; i++)
+     for (i=1; i<=nyrs_srv_age-retro_yrs; i++)
        {
          oac_srvm(i)/=sum(oac_srvm(i));
          oac_srvf(i)/=sum(oac_srvf(i));
@@ -430,7 +509,8 @@ DATA_SECTION
 
 INITIALIZATION_SECTION
 
- // Nothing to see here... move along...
+    theta theta_ival;
+    
 
 PARAMETER_SECTION
 
@@ -482,17 +562,17 @@ PARAMETER_SECTION
   // | - vector for fishery selectivity females
   // | - vector for fishery selectivity males
 
-     init_bounded_vector  log_F_devsf(styr,endyr,-10.,10.,ph_F);
-     init_bounded_vector  log_F_devsm(styr,endyr,-10.,10.,ph_F);
+     init_bounded_dev_vector  log_F_devsf(styr,endyr,-5.,5.,ph_F);
+     init_bounded_dev_vector  log_F_devsm(styr,endyr,-5.,5.,ph_F);
     
-     vector               Fmortf(styr,endyr);
-     vector               Fmortm(styr,endyr);
+     vector                   Fmortf(styr,endyr);
+     vector                   Fmortm(styr,endyr);
 
-     init_bounded_number fish_sel_a50_f(1,3,ph_init);
-     init_bounded_number fish_sel_a50_m(1,3,ph_init);
+     init_bounded_number      fish_sel_a50_f(1,3,ph_init);
+     init_bounded_number      fish_sel_a50_m(1,3,ph_init);
 
-     vector	fish_sel_f(1,nages)
-     vector	fish_sel_m(1,nages)
+     vector	              fish_sel_f(1,nages)
+     vector	              fish_sel_m(1,nages)
      
 
   // |---------------------------------------------------------------------------------|
@@ -604,9 +684,6 @@ PARAMETER_SECTION
   // | - s_mr                -> fraction surviving to time of mark-recapture
   // | - s_spn               -> fraction surviving to spawning
   // |
-  // | - q_cpue1             -> q for survey 1 catchability 
-  // | - q_cpue2             -> q for survey 2 catchability 
-  // | - q_fshy              -> q for fishery catchability both sexes
 
      vector  pred_cpue1(1,nyrs_cpue1); 
      vector  pred_cpue2(1,nyrs_cpue2);
@@ -620,10 +697,6 @@ PARAMETER_SECTION
      number  s_fshyf;
      number  s_srvm;  
      number  s_fshym; 
-
-     sdreport_number  q_cpue1;
-     sdreport_number  q_cpue2;
-     sdreport_number  q_fshy;
 
 
   // |--------------------------------------------------------------------------|
@@ -724,7 +797,7 @@ PARAMETER_SECTION
   // | - obj_fun            <- ADMB objective function call
 
      number  sprpen;
-     vector  penalties(1,5);
+     vector  penalties(1,4);
      vector  surv_like(1,5);
      vector  age_like(1,4);
      number  rec_like;
@@ -739,8 +812,6 @@ PARAMETER_SECTION
 
    wt_mature_f = elem_prod(p_mature,wt_avg_fshy_f);
    wt_mature_s = elem_prod(p_mature,wt_avg_srv_f);
-   wt_fsh_sel_f = elem_prod(fish_sel_f,wt_avg_fshy_f);
-   wt_fsh_sel_m = elem_prod(fish_sel_m,wt_avg_fshy_m);
 
 
   // |-------------------------------------------------------------------------|
@@ -762,6 +833,7 @@ PARAMETER_SECTION
 PROCEDURE_SECTION
      initializeModelParameters();
      Selectivity();
+            if(DEBUG_FLAG == 1) cout<<"**Selectivity**"<<endl;
      Mortality();
             if(DEBUG_FLAG == 1) cout<<"**Mortality**"<<endl;
      Abundance();	
@@ -848,7 +920,7 @@ FUNCTION void initializeModelParameters()
 FUNCTION Selectivity
 
   // |-----------------------------------------------------------------------|
-  // | FISHERY SELECTIVITIES - keep for future versions
+  // | FISHERY SELECTIVITIES
   // |-----------------------------------------------------------------------|
   // | It is assumed that selectivities for the commercial longline fishery
   // | and the ADF&G longline survey are different. The gear is identical
@@ -1017,6 +1089,9 @@ FUNCTION Predicted
      surv_q2 = mfexp(log_surv_q2); 
      comm_q  = mfexp(log_comm_q);
 
+     wt_fsh_sel_f = elem_prod(fish_sel_f,wt_avg_fshy_f);
+     wt_fsh_sel_m = elem_prod(fish_sel_m,wt_avg_fshy_m);
+
 
   // |-------------------------------------------------------------------------|
   // | MARK-RECAPTURE ABUNDANCE - SURVEY YEARS
@@ -1044,7 +1119,7 @@ FUNCTION Predicted
      dvar_matrix mr_m_SRV(1,nyrs_MR,1,nages);
 
   
-     for (i=1;i<=nyrs_MR;i++)
+     for (i=1;i<=nyrs_MR-retro_mod;i++)
        {
          for(j=1; j<=nages; j++)
            {
@@ -1053,14 +1128,14 @@ FUNCTION Predicted
            }
        }
 
-     for (i=1;i<=nyrs_MR;i++)
+     for (i=1;i<=nyrs_MR-retro_mod;i++)
        {
              mr_f_SRV(i) = elem_prod(natagef(yrs_MR(i)),srv_sel_f);
              mr_m_SRV(i) = elem_prod(natagem(yrs_MR(i)),srv_sel_m);
        }
 
 
-     for (i=1;i<=nyrs_MR;i++)
+     for (i=1;i<=nyrs_MR-retro_mod;i++)
        {
          pred_MR_abund(i) =   s_fshyf * 1000 * sum(mr_f(i))+
                               s_fshym * 1000 * sum(mr_m(i));
@@ -1095,7 +1170,7 @@ FUNCTION Predicted
   // | absorbed into the catchability coefficient and would just add code
   // | with no effect on relative abundance
 					             
-     for (i=1;i<=nyrs_cpue2;i++)
+     for (i=1;i<=nyrs_cpue2-retro_yrs;i++)
        {
          pred_cpue2(i) = surv_q2 * (sum(elem_prod(natagef(yrs_cpue2(i)),
                                        srv_sel_f))+  
@@ -1112,7 +1187,7 @@ FUNCTION Predicted
   // | with no effect on relative abundance
 
 
-     for (i=1;i<=nyrs_fshy_cpue;i++)
+     for (i=1;i<=nyrs_fshy_cpue-retro_yrs;i++)
        {
 
          pred_fshy_cpue(i) =  comm_q * (sum(elem_prod(natagef(yrs_fshy_cpue(i)),wt_fsh_sel_f))
@@ -1127,7 +1202,7 @@ FUNCTION Predicted
 
 
      //FISHERY
-     for (i=1;i<=nyrs_fish_age;i++)
+     for (i=1;i<=nyrs_fish_age-retro_yrs;i++)
        {
          eac_fishm(i)  = catagem(yrs_fish_age(i)) / sum(catagem(yrs_fish_age(i))) * ageage;   
          eac_fishf(i)  = catagef(yrs_fish_age(i)) / sum(catagef(yrs_fish_age(i))) * ageage;  
@@ -1144,7 +1219,7 @@ FUNCTION Predicted
 
 
      // SURVEY
-     for (i=1;i<=nyrs_srv_age;i++)
+     for (i=1;i<=nyrs_srv_age-retro_yrs;i++)
        {
          eac_srvf(i)  = elem_prod(srv_sel_f, natagef(yrs_srv_age(i))*s_srvf)
                          /sum(elem_prod(natagef(yrs_srv_age(i))*s_srvf,srv_sel_f)) * ageage; 
@@ -1237,13 +1312,12 @@ FUNCTION Penalties
            fpen = 2;
          }
 
-       penalties(3)  = dnorm(log_avg_F,log(0.09),0.5);
-       penalties(4)  = dnorm(log_mean_rec,5,fpen);
-       penalties(5)  = dnorm(log_mean_y1,6,fpen);
+       penalties(3)  = dnorm(log_mean_rec,5,fpen);
+       penalties(4)  = dnorm(log_mean_y1,6,fpen);
        
 
 
-FUNCTION Catch_Likelihood
+FUNCTION Catch_Like
 
   catch_like.initialize();
 
@@ -1260,7 +1334,7 @@ FUNCTION Catch_Likelihood
 
 
 
-FUNCTION Surv_Likelihood
+FUNCTION Surv_Like
 
   surv_like.initialize();
 
@@ -1268,7 +1342,7 @@ FUNCTION Surv_Likelihood
   // | Mark-recapture estimates of abundance - normal
   // |----------------------------------------------------------------------|
 
-    for (i=1; i<=nyrs_MR; i++)
+    for (i=1; i<=nyrs_MR-retro_mod; i++)
       {
    //
          surv_like(1) += 0.5*log(2*M_PI) + log(sqrt(obs_MR_var(i))) +
@@ -1300,7 +1374,7 @@ FUNCTION Surv_Likelihood
   // | ADF&G survey  CPUE - normal 1996 - present
   // |----------------------------------------------------------------------|
   
-  for (i=1; i<=nyrs_cpue2; i++)
+  for (i=1; i<=nyrs_cpue2-retro_yrs; i++)
     {
 
        surv_like(4) += 0.5*log(2*M_PI) + log(sqrt(obs_cpue2_var(i))+oo) +
@@ -1313,7 +1387,7 @@ FUNCTION Surv_Likelihood
   // | COMMERCIAL CPUE - normal 
   // |----------------------------------------------------------------------|
 
-  for (i=1; i<=nyrs_fshy_cpue; i++)
+  for (i=1; i<=nyrs_fshy_cpue-retro_yrs; i++)
     {
 
        surv_like(5) += 0.5*log(2*M_PI) + log(sqrt(obs_fshy_cpue_var(i))+oo) +
@@ -1323,7 +1397,7 @@ FUNCTION Surv_Likelihood
     
 
 
-FUNCTION Multinomial_Likelihood
+FUNCTION Age_Like
 
   age_like.initialize();
 
@@ -1335,7 +1409,7 @@ FUNCTION Multinomial_Likelihood
     // | Commercial fishery age compositions
     // |--------------------------------------------------------------------|
 
-       for (i=1; i <= nyrs_fish_age; i++)
+       for (i=1; i <= nyrs_fish_age-retro_yrs; i++)
          {
            age_like(1) -= nsamples_fish_agem(i)*((oac_fishm(i) + oo) *
                                                   log(eac_fishm(i) + oo)) ;
@@ -1348,7 +1422,7 @@ FUNCTION Multinomial_Likelihood
     // | Longline survey age compositions
     // |--------------------------------------------------------------------|
 
-       for (i=1; i <= nyrs_srv_age; i++)
+       for (i=1; i <= nyrs_srv_age-retro_yrs; i++)
          {
            age_like(3) -= nsamples_srv_agem(i)*((oac_srvm(i) + oo) *
                                                   log(eac_srvm(i) + oo)) ;
@@ -1372,10 +1446,14 @@ FUNCTION Objective_Function
   // | CALL LIKELIHOOD FUNCTIONS
   // |----------------------------------------------------------------------|
   
-     Catch_Likelihood();
-     Multinomial_Likelihood();
-     Surv_Likelihood();
+     Catch_Like();
+          if(DEBUG_FLAG == 1) cout<<"Catch_Like"<<endl;
+     Surv_Like();
+          if(DEBUG_FLAG == 1) cout<<"Surv_Like"<<endl;
+     Age_Like();
+          if(DEBUG_FLAG == 1) cout<<"Age_Like"<<endl;
      Penalties();
+          if(DEBUG_FLAG == 1) cout<<"Penalties"<<endl;
 
 
   // |----------------------------------------------------------------------|
@@ -1718,9 +1796,6 @@ FUNCTION Projection
 
 
 
-
-
-
 TOP_OF_MAIN_SECTION
   time(&start);
   arrmblsize=5000000;
@@ -1757,9 +1832,42 @@ FINAL_SECTION
         cout<<""<<endl;
 	cout<<"*******************************************"<<endl;
 
-  // |------------------------------------------------------------------------|
-  // | LONG-ASS PARAMETRIC BOOTSTRAP CODE
-  // |------------------------------------------------------------------------|
+
+  // |--------------------------------------------------------------------------|
+  // |                                                                          |
+                                "PARAMETRIC BOOTSTRAP"                          ;
+  // |                                                                          |
+  // |--------------------------------------------------------------------------|
+
+
+  // | This is a good check for parameter distributions and whether they are
+  // |  being artificially truncated by the bounds defined in the
+  // |  PARAMETER_SECTION. It is also a good method for
+  // |  estimating uncertainty of derived quantities. MCMC is also readily
+  // |  available for that. If the parameters are not exceptionally constrained,
+  // |  the results between the parametric boostrap and the MCMC should be fairly
+  // |  similar, and the MCMC is a bit easier to use.
+
+     "  |-----------------------------------------------------------------  |  ";
+     "  |                        BOOTSTRAP CONTROLS                         |  ";
+     "  |                                                                   |  ";
+     "  | 'const int stuff' should be set to the number of entries in the   |  ";
+     "  |   .cor file. If it barfs, make it +1.                             |  ";
+     "  |                                                                   |  ";
+     "  | 'nboot', defining the number of bootstrap draws, is set in the    |  ";
+     "  |   .ctl file and referenced in line 99 above.                      |  ";
+     "  |                                                                   |  ";
+     "  | If you make it through all the output messages and reach the      |  ";
+     "  | 'M5 tie-in' message and then it simply sits there, it is because  |  ";
+     "  |  one or more of the random draw bounds are halting it. Comment    |  ";
+     "  |  out each parameter in the section below 'LIMITS ON RANDOM DRAWS' |  ";
+     "  |  and re-run until it suddenly returns 'Got vector x'              |  ";
+     "  |  and you'll know which parameter(s) is(are) misbehaving.          |  ";
+
+        const int stuff = 412;
+
+     "  |-----------------------------------------------------------------  |  ";
+
 
 
   // |------------------------------------------------------------------------|
@@ -1788,7 +1896,6 @@ FINAL_SECTION
      int ii;
      int jj;
 
-     //int nboot;
      int nwork;
      int ndump;
      int marker;
@@ -1796,7 +1903,6 @@ FINAL_SECTION
      int index;
      double estimate;
      double stdev;
-     const int stuff=570;
      double tmp_cor[stuff];
      double tmp_shit[stuff];
 
@@ -1842,7 +1948,6 @@ FINAL_SECTION
      Boot_correlation.initialize();
      Boot_covariance.initialize();
      Boot_choleski.initialize();
-     //Boot_ran.initialize();
      draw.initialize();
      bootN.initialize();
 
@@ -1972,23 +2077,8 @@ FINAL_SECTION
 
      remove("boot.txt");
      remove("mr.txt");
-     remove("N.txt");
-     remove("SB.txt");
-     remove("cpue1.txt");
-     remove("cpue2.txt");
-     remove("cpue_fish.txt");
-     remove("agef_fish.txt");
-     remove("agem_fish.txt");
-     remove("agef_srv.txt");
-     remove("agem_srv.txt");
-     remove("Ff.txt");
-     remove("Fm.txt");
-     remove("Nf.txt");
-     remove("Nm.txt");
-     remove("Natagef.txt");
-     remove("Natagem.txt");
-     remove("mr_f.txt");
-     remove("mr_m.txt");
+     remove("mr_SRV.txt");
+
 
 
   // |------------------------------------------------------------------------|
@@ -2025,26 +2115,6 @@ FINAL_SECTION
       draw.fill_randn(rng);         //Random draws ~N(0,1)
 
 
-      //for (ii=1; ii<=maxpar; ii++)  //Scales N(0,1)
-       //{
-         //Bootshit(ii) = draw(ii);//  * Boot_stdev(ii);
-       //}
-
-
-
-  // |------------------------------------------------------------------------|
-  // | MULIVARIATE NORMAL
-  // |------------------------------------------------------------------------|
-  // |
-  // | This implements the multivariate normal distribution
-  // | by including the correlation between parameters
-  // | contained in the choleski matrix. If there were no correlation,
-  // | the choleski would contain only zeroes in the off-diagonal,
-  // | and condense to a univariate normal
-  // |
-
-      //Boot_ran = Boot_choleski * Bootshit;
-
 
   // |------------------------------------------------------------------------|
   // | ADD THE RANDOM STANDARD DEVIATION TO THE MLE PARAMETER
@@ -2055,6 +2125,7 @@ FINAL_SECTION
      bootN = Boot_index +  Boot_choleski * draw;
 
      cout<<"My ducks are all in a row"<<endl;
+     
      
   // |------------------------------------------------------------------------|
   // | PARAMETER VALUES
@@ -2113,9 +2184,13 @@ FINAL_SECTION
       }
 
 
-    for(ii = 155; ii<=161; ii++)
+      fish_sel_a50_f               = bootN(155);
+      fish_sel_a50_m               = bootN(156);
+
+
+    for(ii = 157; ii<=165; ii++)
       {
-        mF(ii-154) = bootN(ii);                // F levels for projected N
+        mF(ii-156) = bootN(ii);                // F levels for projected N
       }
 
 
@@ -2137,22 +2212,26 @@ FINAL_SECTION
      // |
      // |
     
-     if (log_mean_rec     < 0.0   ||
-         log_mean_rec     > 10.0  ||
-         log_mean_y1      < 0.0   ||
-         log_mean_y1      > 8.0  ||
-         min(log_rec_dev) < -5.0 ||
-         max(log_rec_dev) > 5.0  ||
-         min(init_pop)    < -5.0 ||
-         max(init_pop)    > 5.0  ||
-         log_surv_q1           < -20.0 ||
-         log_surv_q1         > 0.0   ||
-         log_surv_q2           < -20.0 ||
-         log_surv_q2           > 0.0   ||
-         log_comm_q          < -20.0 ||
-         log_comm_q           > 0.0   ||
-         log_avg_F        < -5   ||
-         log_avg_F        > -2    )
+     if (log_mean_rec     <  0.0   ||
+         log_mean_rec     >  10.0  ||
+         log_mean_y1      <  0.0   ||
+         log_mean_y1      >  8.0   ||
+         min(log_rec_dev) < -5.0   ||
+         max(log_rec_dev) >  5.0   ||
+         min(init_pop)    < -5.0   ||
+         max(init_pop)    >  5.0   ||
+         min(log_F_devsm) < -5.0   ||
+         max(log_F_devsm) >  5.0   ||
+         min(log_F_devsf) < -5.0   ||
+         max(log_F_devsf) >  5.0   ||
+         log_surv_q1      < -20.0  ||
+         log_surv_q1      > -2.0   ||
+         log_surv_q2      < -20.0  ||
+         log_surv_q2      > -2.0   ||
+         log_comm_q       < -20.0  ||
+         log_comm_q       > -2.0   ||
+         log_avg_F        < -5.0   ||
+         log_avg_F        >  0.0    )
 
      {
          //cout<<"Dumping vector"<<endl;
@@ -2178,22 +2257,19 @@ FINAL_SECTION
   // | (abundance, spawning biomass, etc.) which are written to
   // | external files for assessment of variance.
   
-	
      Mortality();
      Abundance();
      Catch();
      Population();
      Predicted();
-
-     //spr();	
-     //Get_ABC();
+     Population();
 
   // |-----------------------------------------------------------|
   // | SAID EXTERNAL WRITING
   // |-----------------------------------------------------------|
 
 
-    ofstream ofs0("boot.txt",ios::app);
+       ofstream ofs0("boot.txt",ios::app);
     {
         ofs0<<bootN<<endl;
     }
@@ -2203,81 +2279,10 @@ FINAL_SECTION
         ofs1<<pred_MR_abund<<endl;
     }
 
-   ofstream ofs2("N.txt",ios::app);
+   ofstream ofs2("mr_srv.txt",ios::app);
     {
-        ofs2<<tot_n<<endl;
+        ofs2<<pred_MR_abund_SRV<<endl;
     }
-
-   ofstream ofs3("SB.txt",ios::app);
-    {
-        ofs3<<spawn_biom<<endl;
-    }
-
-   ofstream ofs4("cpue1.txt",ios::app);
-    {
-        ofs4<<pred_cpue1<<endl;
-    }
-
-   ofstream ofs5("cpue2.txt",ios::app);
-    {
-        ofs5<<pred_cpue2<<endl;
-    }
-
-   ofstream ofs6("cpue_fish.txt",ios::app);
-    {
-        ofs6<<pred_fshy_cpue<<endl;
-    }
-
-   ofstream ofs7("agef_fish.txt",ios::app);
-    {
-        ofs7<<eac_fishf<<endl;
-    }
-
-   ofstream ofs8("agem_fish.txt",ios::app);
-    {
-        ofs8<<eac_fishm<<endl;
-    }
-
-   ofstream ofs9("agef_srv.txt",ios::app);
-    {
-        ofs9<<eac_srvf<<endl;
-    }
-
-   ofstream ofs10("agem_srv.txt",ios::app);
-    {
-        ofs10<<eac_srvm<<endl;
-    }
-
-   ofstream ofs11("Ff.txt",ios::app);
-    {
-        ofs11<<Fmortf<<endl;
-    }
-
-   ofstream ofs12("Fm.txt",ios::app);
-    {
-        ofs12<<Fmortm<<endl;
-    }
-
-   ofstream ofs13("Nf.txt",ios::app);
-    {
-        ofs13<<tot_nf<<endl;
-    }
-
-   ofstream ofs14("Nm.txt",ios::app);
-    {
-        ofs14<<tot_nm<<endl;
-    }
-
-   ofstream ofs15("nategef.txt",ios::app);
-    {
-        ofs15<<natagef<<endl;
-    }
-
-   ofstream ofs16("nategem.txt",ios::app);
-    {
-        ofs16<<natagem<<endl;
-    }
-
  
 
      
@@ -2367,13 +2372,54 @@ GLOBALS_SECTION
 REPORT_SECTION
  report<<"Report for the "<<BaseFileName<<" sablefish age-structured model"<<endl;
   report<<""<<endl;
-    //likelihoods
-  //REPORT(yy);
-  //REPORT(aa);
+  REPORT(nages);
+  REPORT(styr);
+  REPORT(endyr);
+  REPORT(srv_sel_f);
+  REPORT(srv_sel_m);
+  REPORT(p_mature);
+  REPORT(wt_avg_fshy_f);
+  REPORT(wt_avg_fshy_m);
+  REPORT(wt_avg_srv_f);
+  REPORT(wt_avg_srv_m);
+  REPORT(obs_catchf);
+  REPORT(obs_catchm);
+  REPORT(yrs_cpue1);
+  REPORT(obs_cpue1_biom);
+  REPORT(obs_cpue1_var);
+  REPORT(yrs_cpue2);
+  REPORT(obs_cpue2_biom);
+  REPORT(obs_cpue2_var);
+  REPORT(yrs_fshy_cpue);
+  REPORT(obs_fshy_cpue);
+  REPORT(obs_fshy_cpue_var);
+  REPORT(yrs_MR);
+  REPORT(obs_MR_abund);
+  REPORT(obs_MR_var);
+  REPORT(obs_MR_abund_SRV);
+  REPORT(obs_MR_var_SRV);
+  REPORT(yrs_fish_age);
+  REPORT(nsamples_fish_agef);
+  REPORT(oac_fishf);
+  REPORT(nsamples_fish_agem);
+  REPORT(oac_fishm);
+  REPORT(yrs_srv_age);
+  REPORT(nsamples_srv_agef);
+  REPORT(oac_srvf);
+  REPORT(nsamples_srv_agem);
+  REPORT(oac_srvm);
+
+  //end DATA
+
+  //likelihoods
+  REPORT(yy);
+  REPORT(aa);
   REPORT(catch_like);
   REPORT(age_like);
   REPORT(surv_like);
   REPORT(penalties);
+    //END
+    
   REPORT(ABC_pounds)
   REPORT(obs_MR_abund)
   REPORT(pred_MR_abund)
