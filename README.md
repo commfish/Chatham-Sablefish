@@ -89,12 +89,7 @@ b. Incorporate additional data into the estimate of abundance and relax the assu
     e. Step D will produce two different estimates of the number of tags available to be recovered in a given year;  
     f. Total abundance is calculated as a maximum likelihood fit to a binomial probability:  
         
-        1. **Sex-specific model - commercial fishery**  
-            a. For each year, the number of recovered tags is reported by date and port surveyed;
-            b. Robson Regier (1964) used to define the number of marks necessary for desired precision relative to the total number available (A = 0.25, 1 - alpha = 0.95);  
-            c. The recovered tags are partitioned into distinct periods in which each period contains the minimum number of marks. Note - the final period will likely contain fewer than the target; - each period will likely contain more than the minimum number, as dates and vessels are kept intact and tags not divided between them;  
-            d. Abundance is estimated as the number of fish available at the BEGINNING of the fishery, with each recapture event (i.e. minimum number of marks partitioned as per c above) tracking the population reduction due to fishing mortality and natural mortality, and each recapture event producing its own estimate of abundance as:
-            
+                  
              DATA ________________________________________________________________________  
 	     M_0   - total number of marked fish AVAILABLE to fishery  
   
@@ -157,6 +152,12 @@ b. Incorporate additional data into the estimate of abundance and relax the assu
 	     bin_m - binomial distribution fit to data  
 	             BINOMIAL ( m_i * p_male_f | n_i * p_male_f, pm_i)    
 	             
+	1. **Sex-specific model - commercial fishery**  
+	            a. For each year, the number of recovered tags is reported by date and port surveyed;
+	            b. Robson Regier (1964) used to define the number of marks necessary for desired precision relative to the total number available (A = 0.25, 1 - alpha = 0.95);  
+	            c. The recovered tags are partitioned into distinct periods in which each period contains the minimum number of marks. Note - the final period will likely contain fewer than the target; - each period will likely contain more than the minimum number, as dates and vessels are kept intact and tags not divided between them;  
+	            d. Abundance is estimated as the number of fish available at the BEGINNING of the fishery, with each recapture event (i.e. minimum number of marks partitioned as per c above) tracking the population reduction due to fishing mortality and natural mortality, and each recapture event producing its own estimate of abundance as:
+
 	2. **Sex-specific model - longline survey**  
 	    a. As above, but with only a single recovery period (the survey is completed within a few days) and the appropriate modifications from fishery to survey data  
 	    
@@ -164,5 +165,5 @@ b. Incorporate additional data into the estimate of abundance and relax the assu
 	    a. The above calculations are collapsed into a single set of data: number available for recovery, total number recovered, total number recovered outside the fishery or prior to the fishery, etc.  
 	    b. The total abundance N calculated here is the AVERAGE abundance over the course of the commercial fishery, meaning abundance at the mid-point of the fishery. Examination of the model code will show that the sex-unified model is fit to abundance half-way through the fishery, whereas the mark-recapture abundance in the sex-specific model is fit to the abundance at the beginning of the fishery;  
 	    
-	4. **Sex-unified model - longline survey**
+	4. **Sex-unified model - longline survey**  
 	    a. As the sex-specific model, although without sex-specific properties and using the total marks available to the sex-unified structure.  
