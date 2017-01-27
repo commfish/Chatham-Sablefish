@@ -12,7 +12,7 @@
         These use sex-specific capture rates and selectivities and estimate abundance at the *beginning* of the survey and fishery, respectively  
       * parametric bootstrap
       * mcmc output  
-    b.  *Single-sex*    
+   b.  *Single-sex*    
       * Single-sex structure; no explicit sex parameters or derived quantities 
       * uses AVERAGE NOAA longline survey selectivity input, averaged between male and female
       * calculates a single fishery longline selectivity for both sexes
