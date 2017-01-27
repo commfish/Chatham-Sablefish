@@ -1,8 +1,9 @@
 # This is the age-structured sablegish model for Chatham Strait in Southeast Alaska 
 # DIRECTORY CONTENTS
-<hr>  
-1.  **master**   
-      The ADMB sablefish stock assessment model for Chatham Strait:  
+<hr> 
+1.  **admb**  
+      The ADMB sablefish stock assessment model for Chatham Strait:   
+    a.  *master*    
       * sex-specific (distinct abundance, mortality, selectivity for each sex) 
       * uses NOAA longline survey selectivity inputs, male and female
       * calculates sex-specific fishery longline selectivity  
@@ -10,9 +11,8 @@
       * two recapture events for the mark-recapture estimates - fishery and survey  
         These use sex-specific capture rates and selectivities and estimate abundance at the *beginning* of the survey and fishery, respectively  
       * parametric bootstrap
-      * mcmc output
-2.  **Single-sex**   
-      The ADMB sablefish stock assessment model for Chatham Strait:
+      * mcmc output  
+   b.  *Single-sex*    
       * Single-sex structure; no explicit sex parameters or derived quantities 
       * uses AVERAGE NOAA longline survey selectivity input, averaged between male and female
       * calculates a single fishery longline selectivity for both sexes
@@ -21,8 +21,18 @@
         These use general capture rates and selectivities and estimate mean abundance at the *middle* of the survey and fishery, respectively  
         (Note that the survey is so short that the middle and beginning are the same)  
       * parametric bootstrap
-      * mcmc output
-
+      * mcmc output  
+4.  **model_output**  
+      Output files from both the sex-specific (master) and sex-unified (single sex) models.   
+5.  **assessment_graphics.R**  
+      A set of graphic code to examine model outputs. Include read-in of the MCMC derived quantities, but only displays uncertainty as a function of the .std file values. Requires  'globals.R' file (included here)
+16. **globals**  
+      ADMB-R parsing script called by the graphics code 
+6.  **figures**  
+      figures output from both ADMB models  
+      
+      
+      
 #SUMMARY
 The ADMB stock assessment model in this directory has been under development and not formally implemented to establish harvest rates or any other management quantity. It is, however, mature and ready for testing and implementation for the 2017 fishery season, barring any detected anomalies or problems with functionality.  
 
@@ -75,8 +85,7 @@ b. Incorporate additional data into the estimate of abundance and relax the assu
 
 1. Much of the code, especially in the objective function and ABC projections, is written out long-hand; it could be streamlined by using 'dnorm' calls, removing explicit loops, etc. I left it this way to faciliate my own error checking as well as implementation of the retrospective analysis code. Although that is all now resolved, I don't have the time to go through and clean it all up. By all means, feel free to clean this up once you are comfortable with the code workings;  
 
-2. The sample size for age composition has been set to the square root of the sample size scaled to 100 across all sample years. Running the model, however, implements a MANUAL sample size correction: the variances of the residuals in the age-composition data are compared to the assumed input sample sizes by assessing the standard deviation of normalized residuals (Breen at el. 2003). Under the assumption that the normalized residuals are normally distributed, the acceptable limit for SDNR values, following Francis (2011) is given as  *maximum(sdnr) < [(chi_square_0.95)^2 / (m-1)]^0.5* for which m = the number of years in the age-composition data set. If the SNDR for any given year exceeds this limit for a given data set, the input age composition sample size vector is divided by the SDNR vector, and the model re-run with the revised sample sizes. The process is iteratively repeated until the target maximum SDNR value is reached. **This means that the model is initially run using the square root of the sample size as output by the R script, the resulting SDNR examined (in the model.rep file), and if any single element of the vector exceeds the limit, the sample sizes are divided by the SDNR values, AND THE RESULTING REVISED SAMPLE SIZE ARE MANUALLY INSERTED IN THE MODEL.DAT FILE, REPLACING THE SAMPLE SIZE VECTOR (COMMENT THAT LINE OUT).** Using the square root of the sample size scaled to 100 meets this SDNR criteria for several data sets on the first model run, while others needs the manual scaling.    
-
+2. The sample size for age composition has been set to the square root of the sample size scaled to 100 across all sample years. Running the model, however, implements a MANUAL sample size correction: the variances of the residuals in the age-composition data are compared to the assumed input sample sizes by assessing the standard deviation of normalized residuals (Breen at el. 2003). Under the assumption that the normalized residuals are normally distributed, the acceptable limit for SDNR values, following Francis (2011) is given as  *maximum(sdnr) < [(chi_square_0.95)^2 / (m-1)]^0.5* for which m = the number of years in the age-composition data set. If the SNDR for any given year exceeds this limit for a given data set, the input age composition sample size vector is divided by the SDNR vector, and the model re-run with the revised sample sizes. The process is iteratively repeated until the target maximum SDNR value is reached. **This means that the model is initially run using the square root of the sample size as output by the R script, the resulting SDNR examined (in the model.rep file), and if any single element of the vector exceeds the limit, the sample sizes are divided by the SDNR values, AND THE RESULTING REVISED SAMPLE SIZE ARE MANUALLY INSERTED IN THE MODEL.DAT FILE, REPLACING THE SAMPLE SIZE VECTOR (COMMENT THAT LINE OUT).** Using the square root of the sample size scaled to 100 meets this SDNR criteria for several data sets on the first model run, while others needs the manual scaling.  
     Sex-specific model: SDNR limit was met by fishery age composition for both males and females on model run. A single manual iteration was required to bring longline survey age compositions below the limit for the 2015 model.  
     
     Sex-unified model: SDNR limit was met by fishery age composition. Two manual iterations were required to bring the longline survey SDNR below the limit for the 2015 model.   
@@ -90,12 +99,7 @@ b. Incorporate additional data into the estimate of abundance and relax the assu
     e. Step D will produce two different estimates of the number of tags available to be recovered in a given year;  
     f. Total abundance is calculated as a maximum likelihood fit to a binomial probability:  
         
-        1. **Sex-specific model - commercial fishery**  
-            a. For each year, the number of recovered tags is reported by date and port surveyed;
-            b. Robson Regier (1964) used to define the number of marks necessary for desired precision relative to the total number available (A = 0.25, 1 - alpha = 0.95);  
-            c. The recovered tags are partitioned into distinct periods in which each period contains the minimum number of marks. Note - the final period will likely contain fewer than the target; - each period will likely contain more than the minimum number, as dates and vessels are kept intact and tags not divided between them;  
-            d. Abundance is estimated as the number of fish available at the BEGINNING of the fishery, with each recapture event (i.e. minimum number of marks partitioned as per c above) tracking the population reduction due to fishing mortality and natural mortality, and each recapture event producing its own estimate of abundance as:
-            
+                  
              DATA ________________________________________________________________________  
 	     M_0   - total number of marked fish AVAILABLE to fishery  
   
@@ -158,6 +162,12 @@ b. Incorporate additional data into the estimate of abundance and relax the assu
 	     bin_m - binomial distribution fit to data  
 	             BINOMIAL ( m_i * p_male_f | n_i * p_male_f, pm_i)    
 	             
+	1. **Sex-specific model - commercial fishery**  
+	            a. For each year, the number of recovered tags is reported by date and port surveyed;  
+	            b. Robson Regier (1964) used to define the number of marks necessary for desired precision relative to the total number available (A = 0.25, 1 - alpha = 0.95);  
+	            c. The recovered tags are partitioned into distinct periods in which each period contains the minimum number of marks. Note - the final period will likely contain fewer than the target; - each period will likely contain more than the minimum number, as dates and vessels are kept intact and tags not divided between them;  
+	            d. Abundance is estimated as the number of fish available at the BEGINNING of the fishery, with each recapture event (i.e. minimum number of marks partitioned as per c above) tracking the population reduction due to fishing mortality and natural mortality, and each recapture event producing its own estimate of abundance as:
+
 	2. **Sex-specific model - longline survey**  
 	    a. As above, but with only a single recovery period (the survey is completed within a few days) and the appropriate modifications from fishery to survey data  
 	    
@@ -165,5 +175,5 @@ b. Incorporate additional data into the estimate of abundance and relax the assu
 	    a. The above calculations are collapsed into a single set of data: number available for recovery, total number recovered, total number recovered outside the fishery or prior to the fishery, etc.  
 	    b. The total abundance N calculated here is the AVERAGE abundance over the course of the commercial fishery, meaning abundance at the mid-point of the fishery. Examination of the model code will show that the sex-unified model is fit to abundance half-way through the fishery, whereas the mark-recapture abundance in the sex-specific model is fit to the abundance at the beginning of the fishery;  
 	    
-	4. **Sex-unified model - longline survey **
+	4. **Sex-unified model - longline survey**  
 	    a. As the sex-specific model, although without sex-specific properties and using the total marks available to the sex-unified structure.  
