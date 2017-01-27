@@ -652,17 +652,17 @@ PARAMETER_SECTION
   // |        at the very beginning of the fishery. So we decrement survival until
   // |        the middle of the commercial fishery.
 
-     vector  pred_cpue1(1,nyrs_cpue1); 
-     vector  pred_cpue2(1,nyrs_cpue2);
-
-     vector  pred_fshy_cpue(1,nyrs_fshy_cpue);
-
      sdreport_vector  pred_MR_abund(1,nyrs_MR);
      sdreport_vector  pred_MR_abund_SRV(1,nyrs_MR);
 
      matrix  mr_f_cpue(1,nyrs_fshy_cpue,1,nages-2);
      matrix  mr_m_cpue(1,nyrs_fshy_cpue,1,nages-2);
 
+     sdreport_vector  pred_cpue1(1,nyrs_cpue1); 
+     sdreport_vector  pred_cpue2(1,nyrs_cpue2);
+
+     sdreport_vector  pred_fshy_cpue(1,nyrs_fshy_cpue);
+     
      number  s_srv; 
      number  s_fshy; 
      number  s_mr;  
@@ -1650,7 +1650,7 @@ FINAL_SECTION
   // |  the results between the parametric boostrap and the MCMC should be fairly
   // |  similar, and the MCMC is a bit easier to use.
 
-     "  |-----------------------------------------------------------------  |  ";
+     "  | ----------------------------------------------------------------  |  ";
      "  |                        BOOTSTRAP CONTROLS                         |  ";
      "  |                                                                   |  ";
      "  | 'const int stuff' should be set to the number of entries in the   |  ";
@@ -1666,9 +1666,9 @@ FINAL_SECTION
      "  |  and re-run until it suddenly returns 'Got vector x'              |  ";
      "  |  and you'll know which parameter(s) is(are) misbehaving.          |  ";
 
-        const int stuff = 328;
+        const int stuff = 391;
 
-     "  |-----------------------------------------------------------------  |  ";
+     "  | ----------------------------------------------------------------  |  ";
 
 
 
@@ -2208,9 +2208,7 @@ REPORT_SECTION
   REPORT(penalties);
     //END
   REPORT(ABC)
-  REPORT(obs_MR_abund)
   REPORT(pred_MR_abund)
-  REPORT(obs_MR_abund_SRV)
   REPORT(pred_MR_abund_SRV)
   REPORT(natage);
   REPORT(spawn_biom);
@@ -2223,14 +2221,14 @@ REPORT_SECTION
   REPORT(SBx);
   REPORT(tot_biomass);
   REPORT(catch_ABC);
-  REPORT(obs_cpue1_biom);
   REPORT(pred_cpue1);
-  REPORT(obs_cpue2_biom);
   REPORT(pred_cpue2);
-  REPORT(obs_fshy_cpue);
   REPORT(pred_fshy_cpue);
   REPORT(wt_mature_s);
-  REPORT(mfexp(-spawn_fract*M));
+  REPORT(fish_sel);
+  REPORT(vfish_sel_f);
+  REPORT(vfish_sel_m);
+  REPORT(Fmort);
     //SDNR
   REPORT(effn_fish_age);
   REPORT(sdnr_fish_age);
