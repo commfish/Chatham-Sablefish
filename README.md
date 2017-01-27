@@ -1,8 +1,9 @@
 # This is the age-structured sablegish model for Chatham Strait in Southeast Alaska 
 # DIRECTORY CONTENTS
-<hr>  
-1.  **master**   
-      The ADMB sablefish stock assessment model for Chatham Strait:  
+<hr> 
+1.  **admb**  
+      The ADMB sablefish stock assessment model for Chatham Strait: 
+    a.  *master*    
       * sex-specific (distinct abundance, mortality, selectivity for each sex) 
       * uses NOAA longline survey selectivity inputs, male and female
       * calculates sex-specific fishery longline selectivity  
@@ -11,8 +12,7 @@
         These use sex-specific capture rates and selectivities and estimate abundance at the *beginning* of the survey and fishery, respectively  
       * parametric bootstrap
       * mcmc output
-2.  **Single-sex**   
-      The ADMB sablefish stock assessment model for Chatham Strait:
+    b.  *Single-sex*    
       * Single-sex structure; no explicit sex parameters or derived quantities 
       * uses AVERAGE NOAA longline survey selectivity input, averaged between male and female
       * calculates a single fishery longline selectivity for both sexes
@@ -21,8 +21,18 @@
         These use general capture rates and selectivities and estimate mean abundance at the *middle* of the survey and fishery, respectively  
         (Note that the survey is so short that the middle and beginning are the same)  
       * parametric bootstrap
-      * mcmc output
-
+      * mcmc output  
+4.  **model_output**  
+      Output files from both the sex-specific (master) and sex-unified (single sex) models.   
+5.  **assessment_graphics.R**  
+      A set of graphic code to examine model outputs. Include read-in of the MCMC derived quantities, but only displays uncertainty as a function of the .std file values. Requires  'globals.R' file (included here)
+16. **globals**  
+      ADMB-R parsing script called by the graphics code 
+6.  **figures**  
+      figures output from both ADMB models  
+      
+      
+      
 #SUMMARY
 The ADMB stock assessment model in this directory has been under development and not formally implemented to establish harvest rates or any other management quantity. It is, however, mature and ready for testing and implementation for the 2017 fishery season, barring any detected anomalies or problems with functionality.  
 
@@ -153,7 +163,7 @@ b. Incorporate additional data into the estimate of abundance and relax the assu
 	             BINOMIAL ( m_i * p_male_f | n_i * p_male_f, pm_i)    
 	             
 	1. **Sex-specific model - commercial fishery**  
-	            a. For each year, the number of recovered tags is reported by date and port surveyed;
+	            a. For each year, the number of recovered tags is reported by date and port surveyed;  
 	            b. Robson Regier (1964) used to define the number of marks necessary for desired precision relative to the total number available (A = 0.25, 1 - alpha = 0.95);  
 	            c. The recovered tags are partitioned into distinct periods in which each period contains the minimum number of marks. Note - the final period will likely contain fewer than the target; - each period will likely contain more than the minimum number, as dates and vessels are kept intact and tags not divided between them;  
 	            d. Abundance is estimated as the number of fish available at the BEGINNING of the fishery, with each recapture event (i.e. minimum number of marks partitioned as per c above) tracking the population reduction due to fishing mortality and natural mortality, and each recapture event producing its own estimate of abundance as:
