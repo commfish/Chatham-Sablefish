@@ -2,7 +2,7 @@
 # DIRECTORY CONTENTS
 <hr> 
 1.  **admb**  
-      The ADMB sablefish stock assessment model for Chatham Strait: 
+      The ADMB sablefish stock assessment model for Chatham Strait:   
     a.  *master*    
       * sex-specific (distinct abundance, mortality, selectivity for each sex) 
       * uses NOAA longline survey selectivity inputs, male and female
@@ -11,7 +11,7 @@
       * two recapture events for the mark-recapture estimates - fishery and survey  
         These use sex-specific capture rates and selectivities and estimate abundance at the *beginning* of the survey and fishery, respectively  
       * parametric bootstrap
-      * mcmc output
+      * mcmc output  
     b.  *Single-sex*    
       * Single-sex structure; no explicit sex parameters or derived quantities 
       * uses AVERAGE NOAA longline survey selectivity input, averaged between male and female
