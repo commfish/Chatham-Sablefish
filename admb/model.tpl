@@ -685,13 +685,13 @@ PARAMETER_SECTION
   // | - s_spn               -> fraction surviving to spawning
   // |
 
-     vector  pred_cpue1(1,nyrs_cpue1); 
-     vector  pred_cpue2(1,nyrs_cpue2);
-
-     vector  pred_fshy_cpue(1,nyrs_fshy_cpue);
-
      sdreport_vector  pred_MR_abund(1,nyrs_MR);
      sdreport_vector  pred_MR_abund_SRV(1,nyrs_MR);
+
+     sdreport_vector  pred_cpue1(1,nyrs_cpue1); 
+     sdreport_vector  pred_cpue2(1,nyrs_cpue2);
+
+     sdreport_vector  pred_fshy_cpue(1,nyrs_fshy_cpue);
 
      number  s_srvf; 
      number  s_fshyf;
@@ -1846,9 +1846,9 @@ FINAL_SECTION
   // |  estimating uncertainty of derived quantities. MCMC is also readily
   // |  available for that. If the parameters are not exceptionally constrained,
   // |  the results between the parametric boostrap and the MCMC should be fairly
-  // |  similar, and the MCMC is a bit easier to use.
+  // |  similar, and the MCMC is a bit easier to use. 
 
-     "  |-----------------------------------------------------------------  |  ";
+     "  | ----------------------------------------------------------------  |  ";
      "  |                        BOOTSTRAP CONTROLS                         |  ";
      "  |                                                                   |  ";
      "  | 'const int stuff' should be set to the number of entries in the   |  ";
@@ -1864,9 +1864,9 @@ FINAL_SECTION
      "  |  and re-run until it suddenly returns 'Got vector x'              |  ";
      "  |  and you'll know which parameter(s) is(are) misbehaving.          |  ";
 
-        const int stuff = 412;
+        const int stuff = 470;
 
-     "  |-----------------------------------------------------------------  |  ";
+     "  | ----------------------------------------------------------------  |  ";
 
 
 
@@ -2421,9 +2421,7 @@ REPORT_SECTION
     //END
     
   REPORT(ABC_pounds)
-  REPORT(obs_MR_abund)
   REPORT(pred_MR_abund)
-  REPORT(obs_MR_abund_SRV)
   REPORT(pred_MR_abund_SRV)
   REPORT(pred_catchf);
   REPORT(pred_catchm);
@@ -2436,17 +2434,19 @@ REPORT_SECTION
   REPORT(catage_ABC_m);
   REPORT(catch_ABC_f);
   REPORT(catch_ABC_m);
-  REPORT(obs_cpue1_biom);
   REPORT(pred_cpue1);
-  REPORT(obs_cpue2_biom);
   REPORT(pred_cpue2);
-  REPORT(obs_fshy_cpue);
   REPORT(pred_fshy_cpue);
   REPORT(tot_nm);
   REPORT(tot_nf);
   REPORT(tot_n);
   REPORT(wt_mature_s);
-  REPORT(mfexp(-spawn_fract*Mf));
+  REPORT(fish_sel_f);
+  REPORT(fish_sel_m);
+  REPORT(vfish_sel_f);
+  REPORT(vfish_sel_m);
+  REPORT(Fmortf);
+  REPORT(Fmortm);
       //SDNR
   REPORT(effn_fish_agef);
   REPORT(sdnr_fish_agef);
