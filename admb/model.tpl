@@ -1044,8 +1044,8 @@ FUNCTION Abundance
            natagem(i,j)  = natagem(i-1,j-1)*Sm(i-1,j-1); 
          }                                                                         
 										  
-       natagef(i,nages)    += natagef(i,nages)*Sf(i,nages);
-       natagem(i,nages)    += natagem(i,nages)*Sm(i,nages);   
+       natagef(i,nages)    += natagef(i-1,nages)*Sf(i-1,nages);
+       natagem(i,nages)    += natagem(i-1,nages)*Sm(i-1,nages);   
        }
 
        
