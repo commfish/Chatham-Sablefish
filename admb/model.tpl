@@ -957,7 +957,7 @@ FUNCTION Abundance
            natage(i,j)  = natage(i-1,j-1)*S(i-1,j-1);
          }                                                                         
 										  
-       natage(i,nages)    += natage(i,nages)*S(i,nages);
+       natage(i,nages)    += natage(i-1,nages)*S(i-1,nages);
    
        }
 
