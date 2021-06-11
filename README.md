@@ -1,4 +1,4 @@
-# This is the age-structured sablegish model for Chatham Strait in Southeast Alaska 
+# This is the age-structured sablefish model for Chatham Strait in Southeast Alaska 
 # DIRECTORY CONTENTS
 <hr> 
 1.  **admb**  
